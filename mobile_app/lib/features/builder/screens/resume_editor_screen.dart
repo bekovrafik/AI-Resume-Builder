@@ -1,17 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:read_pdf_text/read_pdf_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
-import 'package:mobile_app/core/services/gemini_service.dart';
-import 'package:mobile_app/features/profile/providers/profile_provider.dart';
-import 'package:mobile_app/features/resume/providers/resume_provider.dart';
-
+import 'package:mobile_app/features/builder/providers/resume_editor_provider.dart';
 import 'package:mobile_app/features/builder/widgets/xyz_auditor_widget.dart';
 
 class ResumeEditorScreen extends ConsumerStatefulWidget {
@@ -24,15 +18,39 @@ class ResumeEditorScreen extends ConsumerStatefulWidget {
 
 class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   String _activeSegment = 'history'; // history | specs
+  // We keep text controllers local for performance, but actions go to provider
   final TextEditingController _historyController = TextEditingController();
   final TextEditingController _specsController = TextEditingController();
-  bool _isProcessing = false;
   bool _showAudit = false;
 
   @override
   void initState() {
     super.initState();
-    // In a real app, load existing data via widget.resumeId if editing
+    // FUTURE: If widget.resumeId is set, load data here or in provider
+  }
+
+  @override
+  void dispose() {
+    _historyController.dispose();
+    _specsController.dispose();
+    super.dispose();
+  }
+
+  void _listenToState() {
+    ref.listen(resumeEditorProvider, (previous, next) {
+      if (next.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!)),
+        );
+        ref.read(resumeEditorProvider.notifier).clearMessages();
+      }
+      if (next.resultMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.resultMessage!)),
+        );
+        ref.read(resumeEditorProvider.notifier).clearMessages();
+      }
+    });
   }
 
   // Calculate generic progress based on text length
@@ -42,93 +60,35 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     return (historyScore + specsScore) * 100;
   }
 
-  Future<void> _handleImport() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'txt'],
-      );
-
-      if (result != null && result.files.single.path != null) {
-        setState(() => _isProcessing = true);
-        final path = result.files.single.path!;
-        String text = "";
-
-        if (path.endsWith('.pdf')) {
-          text = await ReadPdfText.getPDFtext(path);
-        } else if (path.endsWith('.txt')) {
-          final file = File(path);
-          text = await file.readAsString();
-        }
-
-        if (mounted) {
-          setState(() {
-            _historyController.text = text;
-            _isProcessing = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Analysis Complete. Data Extracted.")),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Import Failed: $e")),
-        );
-      }
+  Future<void> _onImportTap() async {
+    final importedText =
+        await ref.read(resumeEditorProvider.notifier).handleImport();
+    if (importedText != null && mounted) {
+      setState(() {
+        _historyController.text = importedText;
+      });
     }
   }
 
-  Future<void> _handleBuildResume() async {
-    if (_historyController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please input work history first.")),
-      );
-      return;
-    }
+  Future<void> _onBuildTap() async {
+    final newId =
+        await ref.read(resumeEditorProvider.notifier).handleBuildResume(
+              historyText: _historyController.text,
+              specsText: _specsController.text,
+              theme: 'Executive', // Default theme
+            );
 
-    setState(() => _isProcessing = true);
-
-    try {
-      final gemini = ref.read(geminiServiceProvider);
-      final profile = ref.read(profileProvider).value;
-
-      // 1. Optimize/Generate Resume
-      final resumeData = await gemini.optimizeResume(
-        _historyController.text,
-        jobDescription:
-            _specsController.text.isNotEmpty ? _specsController.text : null,
-        profileData: profile,
-      );
-
-      // 2. Save to Vault (Create new iteration)
-      final newResumeId = await ref.read(resumesProvider.notifier).createResume(
-            theme: 'Executive',
-            data: resumeData,
-          );
-
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        // 3. Navigate to Preview (using the ID or just jumping to latest)
-        context.go('/preview/$newResumeId');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Blueprint Synthesized & Vaulted.")),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Synthesis Error: $e")),
-        );
-      }
+    if (newId != null && mounted) {
+      context.go('/preview/$newId');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    _listenToState();
+    final editorState = ref.watch(resumeEditorProvider);
+    final isProcessing = editorState.isProcessing;
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : AppColors.midnightNavy;
     final subTextColor =
@@ -218,7 +178,8 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     // 3. Content Area
     Widget buildContent() {
       if (_activeSegment == 'history') {
-        return _buildHistoryInput(isDark, textColor, subTextColor);
+        return _buildHistoryInput(
+            isDark, textColor, subTextColor, isProcessing);
       } else {
         return _buildSpecsInput(isDark, textColor, subTextColor);
       }
@@ -265,9 +226,9 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Build Button (Moved from FAB to avoid overlap with Bottom Nav)
+                      // Build Button
                       ElevatedButton(
-                        onPressed: _isProcessing ? null : _handleBuildResume,
+                        onPressed: isProcessing ? null : _onBuildTap,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.midnightNavy,
                           foregroundColor: Colors.white,
@@ -278,7 +239,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                               color: AppColors.strategicGold.withOpacity(0.5)),
                           elevation: 10,
                         ),
-                        child: _isProcessing
+                        child: isProcessing
                             ? Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -343,7 +304,8 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     );
   }
 
-  Widget _buildHistoryInput(bool isDark, Color textColor, Color subTextColor) {
+  Widget _buildHistoryInput(
+      bool isDark, Color textColor, Color subTextColor, bool isProcessing) {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(30),
@@ -377,16 +339,16 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                 ],
               ),
               GestureDetector(
-                onTap: _isProcessing ? null : _handleImport, // Connect function
+                onTap: isProcessing ? null : _onImportTap,
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _isProcessing ? textColor.withOpacity(0.1) : null,
+                    color: isProcessing ? textColor.withOpacity(0.1) : null,
                     border: Border.all(color: textColor.withOpacity(0.1)),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: _isProcessing
+                  child: isProcessing
                       ? SizedBox(
                           width: 12,
                           height: 12,
