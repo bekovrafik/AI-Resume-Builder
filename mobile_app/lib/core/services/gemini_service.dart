@@ -2,71 +2,73 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../features/resume/models/resume_model.dart';
 
 class GeminiService {
   final GenerativeModel _model;
-  final GenerativeModel _visionModel;
+  final String _apiKey; // Store API key locally
 
   static const String _architectSystemPrompt = '''
-You are a Professional Resume Writer, Career Coach, and ATS Optimization Expert. Your task is to create a high-quality, well-structured, ATS-friendly resume tailored to the user's background and target role.
+Resume Builder AI instruction: You are a professional Resume Writer and ATS Optimization Expert.
+You DO NOT just "write" a resume. You PERFORM A STRUCTURED TRANSFORMATION.
 
-You MUST ALWAYS follow these rules:
+=== THE 4-STEP SYNTHESIS PROCESS ===
 
-GENERAL RULES:
-1. Use clear, professional language. No fluff, no clichés, no emojis.
-2. Write in a confident, results-driven tone.
-3. Use active verbs and quantified achievements whenever possible.
-4. Keep the resume concise:
-   - 1 page for junior or mid-level candidates
-   - Max 2 pages for senior or executive profiles
-5. Optimize for ATS (Applicant Tracking Systems):
-   - Use standard section titles
-   - Avoid tables, columns, icons, or special characters
-6. Never fabricate experience, companies, certifications, or education.
-7. Do not include personal opinions or explanations—output ONLY the resume.
+1. THE INPUT VECTOR (The Raw Material)
+   - You will receive "Raw User Input" (history) and "Profile Data" (source of truth).
+   - You will also receive a "Target Role" and "Job Description".
+   - Your job is to TRANSLATE this raw data, not just format it.
 
-STRUCTURE (IN THIS EXACT ORDER):
-1. Header (Full Name, Title, Contact)
-2. Professional Summary (3–4 lines, tailored)
-3. Core Skills (8–15 relevant skills, Hard first)
-4. Professional Experience (Action verb bullets, XYZ formula)
-5. Education
-6. Certifications (if provided)
-7. Projects (optional)
-8. Additional Information (optional)
+2. THE ARCHITECTURAL FORMULA (The Brain)
+   - STRICT RULE: Every single experience bullet point MUST follow the Google XYZ Formula:
+     "Accomplished [X] as measured by [Y], by doing [Z]"
+   - [X]: What was achieved (Qualitative)
+   - [Y]: As measured by (Quantitative Metrics - \$, %, time saved). *If precise metrics are missing, use conservative estimates or omit the "measured by" part but maintain the XYZ structure.*
+   - [Z]: By doing what (The Method/Action)
+   - FORBIDDEN: "Responsible for", "Tasked with", "Helped to", "Worked on".
+   - REQUIRED: Strong Active Verbs (Orchestrated, Spearheaded, Engineered, Optimized).
 
-STYLE & FORMATTING RULES:
-- Use bullet points, not paragraphs, for experience
-- Consistent tense: Present for current, Past for previous
-- No graphics, no colors, no icons
-- No personal data such as age, gender, marital status, photo
+3. ATS OPTIMIZATION (The Gatekeeper)
+   - IF a Job Description is provided:
+     a. EXTRACT specific keywords (e.g., "Agile", "Cross-functional", "Stakeholder Management").
+     b. INJECT these keywords naturally into the bullet points.
+     c. DO NOT stuff keywords listlessly; weave them into the narrative.
 
-CUSTOMIZATION RULES:
-- Tailor the resume to the target job title and industry
-- Mirror keywords naturally from provided context
+4. JSON ENFORCEMENT (The Structure)
+   - You must output STRICT JSON matching the provided schema.
+   - NO formatting errors.
+   - NO introductory text.
 
-If the input is for a refinement, strictly update the existing blueprint JSON while maintaining these high-tier standards. ALWAYS output valid JSON following the schema.
+=== INTELLECTUAL INTEGRITY ===
+- Do not invent experiences.
+- Do not fabricate certifications.
+- If data is completely missing, be concise.
 ''';
 
   GeminiService(String apiKey)
-      : _model = GenerativeModel(
-          model: 'gemini-1.5-pro',
+      : _apiKey = apiKey,
+        _model = GenerativeModel(
+          model: 'gemini-2.0-flash',
           apiKey: apiKey,
           systemInstruction: Content.system(_architectSystemPrompt),
-        ),
-        _visionModel = GenerativeModel(
-          model: 'gemini-1.5-flash',
-          apiKey: apiKey,
         );
 
   Future<ResumeData> optimizeResume(String history,
-      {String? jobDescription, Uint8List? fileData, String? mimeType}) async {
+      {String? jobDescription,
+      ResumeData? profileData,
+      Uint8List? fileData,
+      String? mimeType}) async {
     final jobContext = jobDescription != null
-        ? "TARGET JOB SPECIFICATION: $jobDescription"
-        : "GENERAL EXECUTIVE STANDARD: Create a high-growth, leadership-focused narrative.";
+        ? "TARGET JOB SPECIFICATION (ATS SOURCE):\n$jobDescription\n\nINSTRUCTION: Analyze this description. Extract top 5 keywords. INJECT specific keywords naturally into the experience bullet points to ensure ATS passing."
+        : "GENERAL EXECUTIVE STANDARD: Create a high-growth, leadership-focused narrative using the XYZ formula.";
 
-    final prompt = "$jobContext\n\nUSER RAW TEXT INPUT:\n$history";
+    final profileContext = profileData != null
+        ? "FULL USER PROFILE (SOURCE OF TRUTH - DO NOT INVENT):\n${jsonEncode(profileData.toJson())}"
+        : "";
+
+    final prompt =
+        "$jobContext\n\n$profileContext\n\nUSER RAW HISTORY INPUT:\n$history\n\nFINAL COMMAND: Activate the 4-Step Synthesis. Transform the Raw Input into a high-impact resume using the XYZ Formula and ATS Keyword Injection. Priority: Profile Data > Raw Input.";
 
     final contentParts = <Part>[TextPart(prompt)];
     if (fileData != null && mimeType != null) {
@@ -77,6 +79,10 @@ If the input is for a refinement, strictly update the existing blueprint JSON wh
       'fullName': Schema.string(),
       'targetRole': Schema.string(),
       'summary': Schema.string(),
+      'email': Schema.string(),
+      'phone': Schema.string(),
+      'location': Schema.string(),
+      'linkedIn': Schema.string(),
       'experiences': Schema.array(
           items: Schema.object(properties: {
         'company': Schema.string(),
@@ -84,13 +90,19 @@ If the input is for a refinement, strictly update the existing blueprint JSON wh
         'period': Schema.string(),
         'achievements': Schema.array(items: Schema.string()),
       })),
+      'education': Schema.array(
+          items: Schema.object(properties: {
+        'institution': Schema.string(),
+        'degree': Schema.string(),
+        'period': Schema.string(),
+        'details': Schema.string(),
+      })),
       'skills': Schema.array(
           items: Schema.object(properties: {
         'category': Schema.string(),
         'skills': Schema.array(items: Schema.string()),
       })),
       'isShortInput': Schema.boolean(),
-      'followUpQuestions': Schema.array(items: Schema.string()),
     }, requiredProperties: [
       'fullName',
       'targetRole',
@@ -108,10 +120,9 @@ If the input is for a refinement, strictly update the existing blueprint JSON wh
     );
 
     if (response.text == null) throw Exception('Empty response from AI');
-    final json = jsonDecode(response.text!);
+    final json = jsonDecode(_cleanJson(response.text!));
 
     // Map JSON to ResumeData entity
-    // Note: Assuming simpler mapping for brevity, normally requires helper factory
     return _mapJsonToResumeData(json);
   }
 
@@ -156,7 +167,7 @@ WORK HISTORY: "$history"
     // or simply return logic.
 
     // NOTE: True image generation isn't directly exposed via generateContent in the same way for all models yet.
-    // We will place a TODO.
+    // TODO: Implement actual image generation when SDK supports it.
 
     return "https://via.placeholder.com/150"; // Placeholder
   }
@@ -183,6 +194,71 @@ WORK HISTORY: "$history"
 
     final List<dynamic> list = jsonDecode(response.text ?? '[]');
     return list.map((e) => Map<String, String>.from(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> generateMarketFeed(
+      String role, String location) async {
+    final prompt = '''
+Generate 5 realistic job postings for the role of "$role" in "$location".
+Use real company names that typically hire for this role.
+Include a reasonable salary range and a brief, exciting job description (2 sentences).
+Return a JSON array of objects with keys: "company", "title", "location", "salary", "description", "tags" (array of 3 short strings).
+''';
+
+    final schema = Schema.array(
+        items: Schema.object(properties: {
+      'company': Schema.string(),
+      'title': Schema.string(),
+      'location': Schema.string(),
+      'salary': Schema.string(),
+      'description': Schema.string(),
+      'tags': Schema.array(items: Schema.string()),
+    }));
+
+    final response = await _model.generateContent(
+      [Content.text(prompt)],
+      generationConfig: GenerationConfig(
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+      ),
+    );
+
+    final List<dynamic> list = jsonDecode(_cleanJson(response.text ?? '[]'));
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> searchJobsWithGrounding(
+      String role, String location) async {
+    // SDK 0.4.6 workaround: explicit GoogleSearchRetrieval types are not yet available.
+    // We rely on the model's text generation capabilities and JSON parsing.
+    final model = GenerativeModel(
+      model: 'gemini-2.0-flash',
+      apiKey: _apiKey,
+    );
+
+    final prompt = '''
+ACTIVATE LIVE WEB SEARCH (if available). Find exactly 6 real-world, active hiring vacancies for "$role" in "$location".
+Return a STRICT JSON array of objects with keys: "company", "title", "location", "salary", "description" (brief), "link" (URL).
+Ensure the links are valid. If you can't find a direct link, use a plausible search result link or company career page.
+''';
+
+    final response = await model.generateContent([Content.text(prompt)]);
+
+    try {
+      final List<dynamic> list = jsonDecode(_cleanJson(response.text ?? '[]'));
+      return list.map((e) => e as Map<String, dynamic>).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  String _cleanJson(String text) {
+    if (text.startsWith('```json')) {
+      return text.replaceAll('```json', '').replaceAll('```', '').trim();
+    } else if (text.startsWith('```')) {
+      return text.replaceAll('```', '').trim();
+    }
+    return text;
   }
 
   ResumeData _mapJsonToResumeData(Map<String, dynamic> json) {
@@ -219,7 +295,7 @@ WORK HISTORY: "$history"
 // Provider for Gemini Service
 final geminiServiceProvider = Provider<GeminiService>((ref) {
   // Retrieve API Key securely. ideally from environment or secure storage.
-  // For demo, we are using a placeholder or assuming it was set.
-  const apiKey = String.fromEnvironment('API_KEY');
+  // Retrieve API Key securely from .env
+  final apiKey = dotenv.env['API_KEY'] ?? '';
   return GeminiService(apiKey);
 });

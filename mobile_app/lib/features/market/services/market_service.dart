@@ -1,60 +1,112 @@
-import 'package:uuid/uuid.dart';
-import 'package:mobile_app/features/market/models/job_model.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/features/market/models/market_card_model.dart';
+import 'package:mobile_app/core/services/gemini_service.dart';
 
 class MarketService {
-  final _uuid = const Uuid();
+  final GeminiService? _geminiService;
 
-  // Mock Data Generator
-  List<JobOpportunity> fetchJobs(String targetRole) {
-    // In a real app, this would call an API (Indeed, LinkedIn, Glassdoor, etc.)
-    // For now, we generate realistic dummy data tailored to the role.
+  static const String _apiKey = '82608568-43f8-4566-971f-a242711dc749';
+  static const String _baseUrl = 'https://jooble.org/api/';
 
-    final List<JobOpportunity> jobs = [];
-    final roles = [
-      targetRole,
-      'Senior $targetRole',
-      'Lead $targetRole',
-      '$targetRole Consultant',
-      'Director of $targetRole'
-    ];
+  MarketService({GeminiService? geminiService})
+      : _geminiService = geminiService;
 
-    final companies = [
-      'TechCorp',
-      'InnovateX',
-      'Global Solutions',
-      'StartUp Inc',
-      'Enterprise Systems',
-      'Creative Minds',
-      'Future Vision',
-      'Data Heavy',
-      'Cloud Nine',
-      'Security First'
-    ];
+  Future<List<MarketCardModel>> fetchFeed(String role, String location) async {
+    try {
+      final url = Uri.parse('$_baseUrl$_apiKey');
 
-    final locations = [
-      'New York, NY',
-      'San Francisco, CA',
-      'Austin, TX',
-      'Remote',
-      'London, UK'
-    ];
+      final requestBody = jsonEncode({
+        'keywords': role,
+        'location': location,
+      });
 
-    for (int i = 0; i < 20; i++) {
-      jobs.add(JobOpportunity(
-        id: _uuid.v4(),
-        title: roles[i % roles.length],
-        company: companies[i % companies.length],
-        location: locations[i % locations.length],
-        salaryRange: '\$${(80 + (i * 5))}k - \$${(120 + (i * 5))}k',
-        logoUrl:
-            'https://via.placeholder.com/100?text=${companies[i % companies.length][0]}',
-        tags: ['Full-time', i % 3 == 0 ? 'Remote' : 'On-site', 'Senior'],
-        description:
-            'We are looking for a talented $targetRole to join our team. You will be responsible for leading key initiatives and driving growth.',
-        isRemote: i % 3 == 0,
-      ));
+      // print("JOOBLE REQUEST: $url");
+      // print("JOOBLE BODY: $requestBody");
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
+
+      // print("JOOBLE RESPONSE CODE: ${response.statusCode}");
+      // print("JOOBLE RESPONSE BODY: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> jobs = data['jobs'] ?? [];
+
+        if (jobs.isNotEmpty) {
+          return jobs.map((job) {
+            return MarketCardModel(
+              id: job['id']?.toString() ?? DateTime.now().toString(),
+              type: MarketCardType.job,
+              title: job['title'] ?? 'Unknown Role',
+              company: job['company'] ?? 'Confidential',
+              location: job['location'] ?? location,
+              salaryRange: job['salary'] ?? 'Competitive',
+              description: _cleanSnippet(job['snippet'] ?? ''),
+              tags: _extractTags(job['snippet'] ?? ''),
+              url: job['link'] ?? 'https://jooble.org',
+            );
+          }).toList();
+        }
+      }
+    } catch (e) {
+      // print("Jooble Error: $e");
     }
 
-    return jobs;
+    // Fallback: Use Gemini Grounding if Jooble failed or returned 0
+    if (_geminiService != null) {
+      try {
+        // print("FALLBACK: Using Gemini Grounding for $role in $location");
+        final groundJobs =
+            await _geminiService.searchJobsWithGrounding(role, location);
+
+        return groundJobs.map((job) {
+          return MarketCardModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString() +
+                (job['title'] ?? ''),
+            type: MarketCardType.job,
+            title: job['title'] ?? 'Unknown Role',
+            company: job['company'] ?? 'Google Search Result',
+            location: job['location'] ?? location,
+            salaryRange: job['salary'] ?? 'Competitive',
+            description: _cleanSnippet(job['description'] ?? ''),
+            tags: List<String>.from(job['tags'] ?? []),
+            url: job['link'] ?? 'https://google.com',
+          );
+        }).toList();
+      } catch (e) {
+        // print("Gemini Fallback Error: $e");
+      }
+    }
+
+    return [];
+  }
+
+  String _cleanSnippet(String snippet) {
+    // Remove HTML tags often present in Jooble snippets
+    return snippet.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+  }
+
+  List<String> _extractTags(String snippet) {
+    // Simple extraction of common keywords from description for tags
+    final keywords = [
+      'Remote',
+      'Hybrid',
+      'Senior',
+      'Junior',
+      'Contract',
+      'Full-time'
+    ];
+    return keywords.where((k) => snippet.contains(k)).take(3).toList();
   }
 }
+
+final marketServiceProvider = Provider<MarketService>((ref) {
+  final gemini = ref.read(geminiServiceProvider);
+  return MarketService(geminiService: gemini);
+});

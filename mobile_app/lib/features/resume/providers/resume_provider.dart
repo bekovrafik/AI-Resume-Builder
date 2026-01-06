@@ -37,14 +37,13 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
     }
   }
 
-  Future<void> createResume({String? theme}) async {
+  Future<String> createResume({String? theme, ResumeData? data}) async {
     try {
       final newResume = ResumeIteration()
         ..resumeId = const Uuid().v4()
         ..createdAt = DateTime.now()
         ..theme = theme ?? 'Executive'
-        ..data =
-            (ResumeData()..targetRole = 'New Role'); // Initialize with empty
+        ..data = data ?? (ResumeData()..targetRole = 'New Role');
 
       await _isarService.isar.writeTxn(() async {
         await _isarService.isar.resumeIterations.put(newResume);
@@ -54,8 +53,10 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
       _firestoreService.syncResumeToCloud(newResume);
 
       await loadResumes(); // Reload list
+      return newResume.resumeId;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 

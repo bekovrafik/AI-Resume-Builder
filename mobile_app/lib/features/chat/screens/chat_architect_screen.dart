@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:mobile_app/core/services/gemini_service.dart';
+
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
-import 'package:mobile_app/core/ui/glass_container.dart';
+
 import 'package:mobile_app/core/ui/gradient_background.dart';
 
 // Simple provider for chat state (keeping original logic)
@@ -57,7 +57,6 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
     });
 
     try {
-      final gemini = ref.read(geminiServiceProvider);
       // Actual logic would go here. Mocking for UI port.
       await Future.delayed(const Duration(seconds: 2));
 
@@ -80,8 +79,10 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
         }
       });
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -90,7 +91,6 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(chatMessagesProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GradientBackground(
       withOrbs: false, // Cleaner look for chat

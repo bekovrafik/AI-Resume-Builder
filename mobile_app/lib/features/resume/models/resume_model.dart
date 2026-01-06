@@ -17,7 +17,7 @@ class ResumeIteration {
   late ResumeData data;
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @embedded
 class ResumeData {
   String? fullName;
@@ -56,7 +56,7 @@ class ResumeData {
   Map<String, dynamic> toJson() => _$ResumeDataToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @embedded
 class Experience {
   String? company;
@@ -71,7 +71,7 @@ class Experience {
   Map<String, dynamic> toJson() => _$ExperienceToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @embedded
 class Education {
   String? institution;
@@ -86,7 +86,7 @@ class Education {
   Map<String, dynamic> toJson() => _$EducationToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @embedded
 class SkillCategory {
   String? category; // Technical, Soft Skills, etc.

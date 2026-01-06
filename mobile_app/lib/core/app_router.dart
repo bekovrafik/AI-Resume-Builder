@@ -10,6 +10,8 @@ import '../features/onboarding/screens/splash_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/market/screens/market_screen.dart';
+import '../features/export/screens/resume_preview_screen.dart';
+import '../features/strategy/screens/interview_prep_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -46,8 +48,12 @@ final appRouterProvider = GoRouter(
           builder: (context, state) => const MarketScreen(),
         ),
         GoRoute(
-          path:
-              '/vault', // Using vault as Preview tab placeholder for now, or just Vault
+          path: '/preview/:id',
+          builder: (context, state) =>
+              ResumePreviewScreen(resumeId: state.pathParameters['id']),
+        ),
+        GoRoute(
+          path: '/vault',
           builder: (context, state) => const VaultScreen(),
         ),
         GoRoute(
@@ -68,6 +74,11 @@ final appRouterProvider = GoRouter(
       parentNavigatorKey:
           _rootNavigatorKey, // Chat usually overlay or full screen
       builder: (context, state) => const ChatArchitectScreen(),
+    ),
+    GoRoute(
+      path: '/strategy',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const InterviewPrepScreen(),
     ),
   ],
 );

@@ -30,6 +30,10 @@ class DashboardScreen extends ConsumerWidget {
         (profileData?.experiences?.isNotEmpty == true ? 20 : 0) +
         (profileData?.skills?.isNotEmpty == true ? 20 : 0);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : AppColors.midnightNavy;
+    final iconColor = isDark ? AppColors.strategicGold : AppColors.midnightNavy;
+
     return GradientBackground(
       child: SafeArea(
         child: SingleChildScrollView(
@@ -49,7 +53,9 @@ class DashboardScreen extends ConsumerWidget {
                       height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.midnightNavy.withOpacity(0.1),
+                        color: isDark
+                            ? Colors.white10
+                            : AppColors.midnightNavy.withOpacity(0.1),
                         border: Border.all(
                             color: AppColors.strategicGold.withOpacity(0.3),
                             width: 2),
@@ -58,8 +64,9 @@ class DashboardScreen extends ConsumerWidget {
                           ? ClipOval(
                               child: Image.network(profileData!
                                   .avatarUrl!)) // Placeholder for network image logic
-                          : const Icon(Icons.person,
-                              size: 40, color: Colors.grey),
+                          : Icon(Icons.person,
+                              size: 40,
+                              color: isDark ? Colors.white54 : Colors.grey),
                     ),
                     const SizedBox(width: 20),
                     // Info
@@ -69,18 +76,20 @@ class DashboardScreen extends ConsumerWidget {
                         children: [
                           Text(fullName!,
                               style: AppTypography.header3
-                                  .copyWith(color: AppColors.midnightNavy)),
+                                  .copyWith(color: textColor)),
                           const SizedBox(height: 4),
                           Text(targetRole!,
                               style: AppTypography.labelSmall.copyWith(
-                                  color: Colors.grey, letterSpacing: 1.5)),
+                                  color: isDark ? Colors.white54 : Colors.grey,
+                                  letterSpacing: 1.5)),
                           const SizedBox(height: 12),
                           // Progress Bar
                           ClipRRect(
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: progress / 100,
-                              backgroundColor: Colors.black12,
+                              backgroundColor:
+                                  isDark ? Colors.white12 : Colors.black12,
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                   AppColors.strategicGold),
                               minHeight: 6,
@@ -95,7 +104,7 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 32),
 
               // Settings Section: Identity
-              _buildSectionHeader("PERSONALIZATION"),
+              _buildSectionHeader("PERSONALIZATION", isDark),
               const SizedBox(height: 16),
               GlassContainer(
                 padding: EdgeInsets.zero,
@@ -109,8 +118,12 @@ class DashboardScreen extends ConsumerWidget {
                       icon: Icons.person_outline,
                       onTap: () => context.push('/profile'),
                       isFirst: true,
+                      defaultIconColor: iconColor,
+                      defaultTitleColor: textColor,
                     ),
-                    const Divider(height: 1, color: Colors.black12),
+                    Divider(
+                        height: 1,
+                        color: isDark ? Colors.white12 : Colors.black12),
                     _buildSettingRow(
                       context,
                       title: "Career Vault",
@@ -118,6 +131,8 @@ class DashboardScreen extends ConsumerWidget {
                       icon: Icons.inventory_2_outlined,
                       onTap: () => context.push('/vault'),
                       isLast: true,
+                      defaultIconColor: iconColor,
+                      defaultTitleColor: textColor,
                     ),
                   ],
                 ),
@@ -125,7 +140,7 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 32),
 
               // Settings Section: Architecture
-              _buildSectionHeader("ARCHITECTURE CONTROLS"),
+              _buildSectionHeader("ARCHITECTURE CONTROLS", isDark),
               const SizedBox(height: 16),
               GlassContainer(
                 padding: EdgeInsets.zero,
@@ -140,8 +155,23 @@ class DashboardScreen extends ConsumerWidget {
                       iconColor: AppColors.strategicGold,
                       onTap: () => context.push('/market'),
                       isFirst: true,
+                      defaultTitleColor: textColor,
                     ),
-                    const Divider(height: 1, color: Colors.black12),
+                    Divider(
+                        height: 1,
+                        color: isDark ? Colors.white12 : Colors.black12),
+                    _buildSettingRow(
+                      context,
+                      title: "Interview Prep Protocol",
+                      subtitle: "Initialize Tactical Analysis",
+                      icon: Icons.psychology_outlined,
+                      iconColor: AppColors.strategicGold,
+                      onTap: () => context.push('/strategy'),
+                      defaultTitleColor: textColor,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: isDark ? Colors.white12 : Colors.black12),
                     _buildSettingRow(
                       context,
                       title: "Narrative Refinement",
@@ -150,6 +180,7 @@ class DashboardScreen extends ConsumerWidget {
                       iconColor: AppColors.strategicGold,
                       onTap: () => context.push('/chat'),
                       isLast: true,
+                      defaultTitleColor: textColor,
                     ),
                   ],
                 ),
@@ -157,13 +188,38 @@ class DashboardScreen extends ConsumerWidget {
 
               const SizedBox(height: 32),
 
-              // Settings Section: Preferences (Mock)
-              _buildSectionHeader("PREFERENCES"),
+              // Settings Section: Preferences
+              _buildSectionHeader("PREFERENCES", isDark),
               const SizedBox(height: 16),
               GlassContainer(
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.circular(24),
                   child: Column(children: [
+                    _buildSettingRow(
+                      context,
+                      title: "Concierge & Support",
+                      subtitle: "Inquiry Dispatch",
+                      icon: Icons.support_agent,
+                      onTap: () {}, // TODO: Implement
+                      isFirst: true,
+                      defaultIconColor: iconColor,
+                      defaultTitleColor: textColor,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: isDark ? Colors.white12 : Colors.black12),
+                    _buildSettingRow(
+                      context,
+                      title: "Legal Standard",
+                      subtitle: "Institutional Privacy Policy",
+                      icon: Icons.policy_outlined,
+                      onTap: () {}, // TODO: Implement
+                      defaultIconColor: iconColor,
+                      defaultTitleColor: textColor,
+                    ),
+                    Divider(
+                        height: 1,
+                        color: isDark ? Colors.white12 : Colors.black12),
                     _buildSettingRow(
                       context,
                       title: "Terminate Session",
@@ -175,8 +231,8 @@ class DashboardScreen extends ConsumerWidget {
                         await ref.read(authServiceProvider).signOut();
                         if (context.mounted) context.go('/login');
                       },
-                      isFirst: true,
                       isLast: true,
+                      defaultIconColor: iconColor,
                     ),
                   ])),
 
@@ -205,13 +261,13 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Text(
         title,
         style: AppTypography.labelSmall.copyWith(
-          color: Colors.grey,
+          color: isDark ? Colors.white54 : Colors.grey,
           letterSpacing: 2.0,
         ),
       ),
@@ -223,10 +279,17 @@ class DashboardScreen extends ConsumerWidget {
       required String subtitle,
       required IconData icon,
       required VoidCallback onTap,
-      Color iconColor = AppColors.midnightNavy,
-      Color titleColor = AppColors.midnightNavy,
+      Color? iconColor,
+      Color? titleColor,
+      Color? defaultIconColor,
+      Color? defaultTitleColor,
       bool isFirst = false,
       bool isLast = false}) {
+    final effectiveIconColor =
+        iconColor ?? defaultIconColor ?? AppColors.midnightNavy;
+    final effectiveTitleColor =
+        titleColor ?? defaultTitleColor ?? AppColors.midnightNavy;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.vertical(
@@ -240,10 +303,10 @@ class DashboardScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: effectiveIconColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              child: Icon(icon, color: effectiveIconColor, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -252,7 +315,8 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   Text(title,
                       style: AppTypography.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600, color: titleColor)),
+                          fontWeight: FontWeight.w600,
+                          color: effectiveTitleColor)),
                   Text(subtitle,
                       style: AppTypography.labelSmall.copyWith(
                           color: Colors.grey, fontSize: 9, letterSpacing: 1.0)),

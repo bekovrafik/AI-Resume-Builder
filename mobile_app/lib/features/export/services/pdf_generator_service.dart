@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
 import '../../resume/models/resume_model.dart';
 
 class PdfGeneratorService {
@@ -34,7 +34,7 @@ class PdfGeneratorService {
         ),
         pw.Text(
           data.targetRole ?? "Target Role",
-          style: pw.TextStyle(fontSize: 18, color: PdfColors.grey700),
+          style: const pw.TextStyle(fontSize: 18, color: PdfColors.grey700),
         ),
         pw.SizedBox(height: 8),
         pw.Text(

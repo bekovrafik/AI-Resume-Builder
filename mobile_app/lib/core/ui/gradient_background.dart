@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/core/theme/app_theme.dart';
+
 import 'animated_orb.dart';
-import 'glass_container.dart'; // Optional usage if needed here
 
 class GradientBackground extends StatelessWidget {
   final Widget child;

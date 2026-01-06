@@ -11,7 +11,7 @@ final themeInitializationProvider = FutureProvider<ThemeMode>((ref) async {
 });
 
 class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier(ThemeMode initialMode) : super(initialMode);
+  ThemeNotifier(super.initialMode);
 
   Future<void> toggleTheme() async {
     state = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;

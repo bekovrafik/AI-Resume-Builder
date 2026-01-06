@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
-import 'package:mobile_app/features/profile/providers/profile_provider.dart';
+
 import 'package:mobile_app/core/providers/theme_provider.dart';
 
 class MainScaffold extends ConsumerWidget {
@@ -37,8 +37,7 @@ class MainScaffold extends ConsumerWidget {
         context.go('/market');
         break;
       case 3:
-        // context.go('/preview'); // Need to create this route
-        context.go('/vault'); // Temporarily map to Vault or a placeholder
+        context.go('/preview');
         break;
     }
   }
@@ -53,7 +52,7 @@ class MainScaffold extends ConsumerWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.description, color: AppColors.strategicGold),
+            const Icon(Icons.description, color: AppColors.strategicGold),
             const SizedBox(width: 8),
             Text("AI RESUME BUILDER",
                 style: AppTypography.header3
@@ -77,19 +76,30 @@ class MainScaffold extends ConsumerWidget {
       body: child,
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.transparent,
         ),
         child: GlassContainer(
           borderRadius: BorderRadius.circular(30),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          color: isDark ? AppColors.midnightNavy : Colors.white,
+          opacity: isDark
+              ? 0.6
+              : 0.8, // More opaque in light mode to stand out against gradient
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.1)
+                : AppColors.midnightNavy.withOpacity(0.1),
+            width: 1,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(context, 0, "Dash", Icons.dashboard_outlined),
-              _buildNavItem(context, 1, "Build", Icons.construction_outlined),
-              _buildNavItem(context, 2, "Market", Icons.radar),
-              _buildNavItem(context, 3, "Preview", Icons.description_outlined),
+              _buildNavItem(context, 0, "Dash", Icons.person_outline, isDark),
+              _buildNavItem(context, 1, "Build", Icons.edit_document, isDark),
+              _buildNavItem(context, 2, "Market", Icons.radar, isDark),
+              _buildNavItem(
+                  context, 3, "Preview", Icons.visibility_outlined, isDark),
             ],
           ),
         ),
@@ -97,11 +107,18 @@ class MainScaffold extends ConsumerWidget {
     );
   }
 
-  Widget _buildNavItem(
-      BuildContext context, int index, String label, IconData icon) {
+  Widget _buildNavItem(BuildContext context, int index, String label,
+      IconData icon, bool isDark) {
     final selectedIndex = _calculateSelectedIndex(context);
     final isSelected = selectedIndex == index;
-    final color = isSelected ? AppColors.strategicGold : Colors.grey;
+
+    // Light Mode: Selected = Navy, Unselected = Navy 50%
+    // Dark Mode: Selected = Gold, Unselected = White 50%
+    final selectedColor =
+        isDark ? AppColors.strategicGold : AppColors.midnightNavy;
+    final unselectedColor =
+        isDark ? Colors.white54 : AppColors.midnightNavy.withOpacity(0.5);
+    final color = isSelected ? selectedColor : unselectedColor;
 
     return InkWell(
       onTap: () => _onItemTapped(index, context),

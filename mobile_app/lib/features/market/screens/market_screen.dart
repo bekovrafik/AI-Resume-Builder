@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
-import 'package:mobile_app/core/ui/glass_container.dart';
-import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
+import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/profile/providers/profile_provider.dart';
 import 'package:mobile_app/features/market/services/market_service.dart';
-import 'package:mobile_app/features/market/models/job_model.dart';
+import 'package:mobile_app/features/market/models/market_card_model.dart';
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MarketScreen extends ConsumerStatefulWidget {
@@ -17,155 +17,295 @@ class MarketScreen extends ConsumerStatefulWidget {
 }
 
 class _MarketScreenState extends ConsumerState<MarketScreen> {
-  final MarketService _marketService = MarketService();
-  final TextEditingController _roleController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  List<JobOpportunity> _jobs = [];
-  bool _isLoading = false;
-  bool _hasSearched = false;
+  final CardSwiperController _swiperController = CardSwiperController();
+  List<MarketCardModel> _cards = [];
+  bool _isLoading = true;
+
+  // Filter State
+  String? _selectedRole;
+  String? _selectedLocation;
+  final TextEditingController _roleFilterCtrl = TextEditingController();
+  final TextEditingController _locFilterCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    final profile = ref.read(profileProvider).value;
-    if (profile?.targetRole != null) {
-      _roleController.text = profile!.targetRole!;
-      _searchJobs();
+    // Delay to allow provider to read
+    Future.microtask(() {
+      final profile = ref.read(profileProvider).value;
+      setState(() {
+        _selectedRole = profile?.targetRole ?? "General Manager";
+        _selectedLocation = "Remote";
+
+        _roleFilterCtrl.text = _selectedRole!;
+        _locFilterCtrl.text = _selectedLocation!;
+      });
+      _loadFeed();
+    });
+  }
+
+  Future<void> _loadFeed() async {
+    setState(() => _isLoading = true);
+
+    final role = _selectedRole ?? "General Manager";
+    final location = _selectedLocation ?? "Remote";
+
+    final marketService = ref.read(marketServiceProvider);
+
+    final newCards = await marketService.fetchFeed(role, location);
+    if (mounted) {
+      setState(() {
+        _cards = newCards;
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _searchJobs() async {
-    if (_roleController.text.isEmpty) return;
-    setState(() {
-      _isLoading = true;
-      _hasSearched = true;
-    });
-
-    // Simulate Network Delay & Fetch
-    try {
-      final results = await _marketService.fetchJobs(_roleController.text);
-      if (mounted) {
-        setState(() {
-          _jobs = results;
+  void _openFilterModal(Color textColor, bool isDark) {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (context) {
+          final bottomPadding = MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              20;
+          return Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text("MARKET RADAR SETTINGS",
+                      style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.strategicGold, letterSpacing: 2)),
+                  const SizedBox(height: 24),
+                  _buildFilterInput("TARGET ROLE", _roleFilterCtrl, textColor),
+                  const SizedBox(height: 16),
+                  _buildFilterInput(
+                      "LOCATION PREFERENCE", _locFilterCtrl, textColor),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedRole = _roleFilterCtrl.text;
+                          _selectedLocation = _locFilterCtrl.text;
+                        });
+                        Navigator.pop(context);
+                        _loadFeed();
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.strategicGold,
+                          foregroundColor: AppColors.midnightNavy,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16))),
+                      child: Text("APPLY FILTERS",
+                          style: AppTypography.labelSmall
+                              .copyWith(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          );
         });
+  }
+
+  bool _onSwipe(
+    int previousIndex,
+    int? currentIndex,
+    CardSwiperDirection direction,
+  ) {
+    if (direction == CardSwiperDirection.right) {
+      // Launch URL
+      final card = _cards[previousIndex];
+      if (card.url != null) {
+        _launchJobUrl(card.url!);
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(card.type == MarketCardType.job
+              ? "Opening Job Application..."
+              : "Opening Offer..."),
+          duration: const Duration(milliseconds: 1000),
+          backgroundColor: AppColors.strategicGold,
+        ),
+      );
+    }
+    return true;
+  }
+
+  Future<void> _launchJobUrl(String urlString) async {
+    final uri = Uri.parse(urlString);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : AppColors.midnightNavy;
+
     return Scaffold(
       body: GradientBackground(
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
             children: [
-              // Header
-              Text.rich(
-                TextSpan(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextSpan(
-                        text: "Market ",
-                        style: AppTypography.header1
-                            .copyWith(color: Colors.white, fontSize: 32)),
-                    TextSpan(
-                        text: "Radar.",
-                        style: AppTypography.header1.copyWith(
-                            color: AppColors.strategicGold, fontSize: 32)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text("REAL-TIME OPPORTUNITY DISCOVERY",
-                  style: AppTypography.labelSmall
-                      .copyWith(color: Colors.white54, letterSpacing: 2.0)),
-
-              const SizedBox(height: 32),
-
-              // Search Box
-              GlassContainer(
-                padding: const EdgeInsets.all(24),
-                borderRadius: BorderRadius.circular(30),
-                child: Column(
-                  children: [
-                    _buildInputField("TARGET PROFESSIONAL ROLE",
-                        _roleController, "Ex: Executive Creative Director"),
-                    const SizedBox(height: 20),
-                    _buildInputField("GEOGRAPHICAL FOCUS", _locationController,
-                        "Ex: NYC, London, or Remote"),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _searchJobs,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.strategicGold,
-                          foregroundColor: AppColors.midnightNavy,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          _isLoading
-                              ? "SCANNING INSTITUTIONAL PORTALS..."
-                              : "SCAN JOBS",
-                          style: AppTypography.labelSmall.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.midnightNavy),
-                        ),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                              text: "Market ",
+                              style: AppTypography.header1
+                                  .copyWith(color: textColor, fontSize: 32)),
+                          TextSpan(
+                              text: "Radar.",
+                              style: AppTypography.header1.copyWith(
+                                  color: AppColors.strategicGold,
+                                  fontSize: 32)),
+                        ],
                       ),
                     ),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => _openFilterModal(textColor, isDark),
+                          icon: Icon(Icons.tune, color: textColor),
+                        ),
+                        IconButton(
+                          onPressed: () => _loadFeed(),
+                          icon: Icon(Icons.refresh,
+                              color: textColor.withOpacity(0.5)),
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
 
-              const SizedBox(height: 32),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on,
+                        size: 14, color: textColor.withOpacity(0.5)),
+                    const SizedBox(width: 4),
+                    Text(
+                        "${_selectedRole ?? 'Loading...'} in ${_selectedLocation ?? '...'}",
+                        style: AppTypography.bodySmall.copyWith(
+                            color: textColor.withOpacity(0.5), fontSize: 12)),
+                  ],
+                ),
+              ),
 
-              // Results
-              if (_isLoading)
-                const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.strategicGold))
-              else if (_jobs.isEmpty && _hasSearched)
-                Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.radar, size: 48, color: Colors.white24),
-                      const SizedBox(height: 16),
-                      Text("NO OPPORTUNITIES DETECTED",
-                          style: AppTypography.labelSmall
-                              .copyWith(color: Colors.white24)),
-                    ],
-                  ),
-                )
-              else if (_jobs.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 40.0),
-                    child: Column(
-                      children: [
-                        Icon(Icons.search, size: 48, color: Colors.white10),
-                        const SizedBox(height: 16),
-                        Text("AWAITING SEARCH QUERY",
-                            style: AppTypography.labelSmall
-                                .copyWith(color: Colors.white10)),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ..._jobs.map((job) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: _buildJobCard(job),
-                    )),
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.strategicGold))
+                    : _cards.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.search_off,
+                                    size: 64,
+                                    color: textColor.withOpacity(0.3)),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "No Opportunities Found",
+                                  style: AppTypography.header3
+                                      .copyWith(color: textColor),
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  child: Text(
+                                    "The API returned 0 results for this area. Try searching directly on the web.",
+                                    textAlign: TextAlign.center,
+                                    style: AppTypography.bodySmall.copyWith(
+                                        color: textColor.withOpacity(0.5)),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    _launchJobUrl(
+                                        "https://jooble.org/SearchResult?p=$_selectedRole&rg=$_selectedLocation");
+                                  },
+                                  icon: const Icon(Icons.public,
+                                      color: AppColors.midnightNavy),
+                                  label: Text("SEARCH ON JOOBLE WEB",
+                                      style: AppTypography.labelSmall.copyWith(
+                                          color: AppColors.midnightNavy,
+                                          fontWeight: FontWeight.bold)),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.strategicGold,
+                                      foregroundColor: AppColors.midnightNavy,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 24, vertical: 12)),
+                                ),
+                                const SizedBox(height: 16),
+                                TextButton(
+                                  onPressed: () =>
+                                      _openFilterModal(textColor, isDark),
+                                  child: Text("Adjust Filters",
+                                      style: TextStyle(
+                                          color: textColor.withOpacity(0.7))),
+                                )
+                              ],
+                            ),
+                          )
+                        : CardSwiper(
+                            controller: _swiperController,
+                            cardsCount: _cards.length,
+                            onSwipe: _onSwipe,
+                            numberOfCardsDisplayed:
+                                _cards.length < 3 ? _cards.length : 3,
+                            backCardOffset: const Offset(0, 40),
+                            padding: const EdgeInsets.all(24.0),
+                            cardBuilder: (context, index, percentThresholdX,
+                                percentThresholdY) {
+                              final card = _cards[index];
+                              return card.type == MarketCardType.job
+                                  ? _buildJobCard(card, isDark, textColor)
+                                  : _buildAdCard(card, isDark, textColor);
+                            },
+                          ),
+              ),
 
-              // Bottom spacing for Navbar
-              const SizedBox(height: 100),
+              const SizedBox(height: 100), // Nav spacing
             ],
           ),
         ),
@@ -173,114 +313,235 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
     );
   }
 
-  Widget _buildInputField(
-      String label, TextEditingController controller, String placeholder) {
+  Widget _buildFilterInput(
+      String label, TextEditingController controller, Color textColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
             style: AppTypography.labelSmall
-                .copyWith(color: Colors.white54, fontSize: 9)),
+                .copyWith(fontSize: 10, color: textColor.withOpacity(0.6))),
         const SizedBox(height: 8),
         Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white12),
-          ),
+              color: textColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: textColor.withOpacity(0.1))),
           child: TextField(
             controller: controller,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: placeholder,
-              hintStyle: TextStyle(color: Colors.white30, fontSize: 13),
-              border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            ),
+            style: TextStyle(color: textColor),
+            decoration: const InputDecoration(border: InputBorder.none),
           ),
         )
       ],
     );
   }
 
-  Widget _buildJobCard(JobOpportunity job) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(24),
-      borderRadius: BorderRadius.circular(30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildJobCard(MarketCardModel card, bool isDark, Color textColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: AppColors.strategicGold.withOpacity(0.1),
+                borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(100),
+                    topRight: Radius.circular(30)),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
                   children: [
-                    Text(job.title,
-                        style: AppTypography.header3
-                            .copyWith(color: Colors.white, height: 1.2)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(job.company.toUpperCase(),
-                            style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.strategicGold, fontSize: 9)),
-                        const SizedBox(width: 8),
-                        Text("•", style: TextStyle(color: Colors.white30)),
-                        const SizedBox(width: 8),
-                        Text(job.location.toUpperCase(),
-                            style: AppTypography.labelSmall
-                                .copyWith(color: Colors.white54, fontSize: 9)),
-                      ],
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12)),
+                      child: const Icon(Icons.business,
+                          size: 30, color: Colors.grey),
                     ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(card.company ?? "Company",
+                            style: AppTypography.labelSmall.copyWith(
+                                color: AppColors.strategicGold, fontSize: 12)),
+                        Text(card.location ?? "Remote",
+                            style: AppTypography.bodySmall
+                                .copyWith(color: textColor.withOpacity(0.6))),
+                      ],
+                    )
                   ],
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.strategicGold.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                const SizedBox(height: 32),
+                Text(
+                  card.title ?? "Job Title",
+                  style: AppTypography.header1
+                      .copyWith(color: textColor, fontSize: 32, height: 1.1),
                 ),
-                child: Icon(Icons.arrow_outward,
-                    color: AppColors.strategicGold, size: 20),
-              )
-            ],
+                const SizedBox(height: 16),
+                Text(
+                  card.salaryRange ?? "\$100k - \$150k",
+                  style: AppTypography.header3
+                      .copyWith(color: textColor.withOpacity(0.8)),
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: (card.tags ?? [])
+                      .map((tag) => Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                                color: textColor.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: textColor.withOpacity(0.1))),
+                            child: Text(tag,
+                                style: AppTypography.labelSmall.copyWith(
+                                    color: textColor.withOpacity(0.8),
+                                    fontSize: 10)),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  card.description ?? "",
+                  style: AppTypography.bodySmall
+                      .copyWith(color: textColor.withOpacity(0.7), height: 1.6),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
-          Text(job.description,
-              style: AppTypography.bodySmall.copyWith(color: Colors.white70),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 24),
-          InkWell(
-            onTap: () async {
-              final uri = Uri.parse(job.url);
-              if (await canLaunchUrl(uri)) await launchUrl(uri);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+          Positioned(
+            bottom: 32,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionBtn(Icons.close, Colors.redAccent,
+                    () => _swiperController.swipe(CardSwiperDirection.left)),
+                _buildActionBtn(Icons.work, AppColors.strategicGold,
+                    () => _swiperController.swipe(CardSwiperDirection.right)),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdCard(MarketCardModel card, bool isDark, Color textColor) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+              isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            ]),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.strategicGold.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("INITIATE APPLICATION",
+                  Text("SPONSORED",
                       style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.midnightNavy,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  Icon(Icons.check, size: 14, color: AppColors.midnightNavy)
+                          color: AppColors.strategicGold, letterSpacing: 2)),
+                  const SizedBox(height: 24),
+                  Icon(Icons.auto_graph,
+                      size: 64, color: textColor.withOpacity(0.8)),
+                  const SizedBox(height: 24),
+                  Text(
+                    card.adHeadline ?? "Premium Offer",
+                    style: AppTypography.header2.copyWith(color: textColor),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    card.adBody ?? "Check this out.",
+                    style: AppTypography.bodySmall
+                        .copyWith(color: textColor.withOpacity(0.7)),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
+              ),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+                color: AppColors.strategicGold.withOpacity(0.1),
+                borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30))),
+            child: Center(
+              child: Text(
+                card.adCta?.toUpperCase() ?? "LEARN MORE",
+                style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.strategicGold,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           )
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionBtn(IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4))
+            ]),
+        child: Icon(icon, color: color, size: 28),
       ),
     );
   }

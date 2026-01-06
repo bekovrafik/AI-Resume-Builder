@@ -1,3 +1,9 @@
+ext {
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    minSdkVersion = 23
+}
+
 allprojects {
     repositories {
         google()
@@ -21,6 +27,7 @@ subprojects {
                     if (namespace == null) {
                         namespace = project.group
                     }
+                    compileSdkVersion 35
                 }
             }
         }

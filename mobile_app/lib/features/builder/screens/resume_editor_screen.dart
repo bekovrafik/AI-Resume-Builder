@@ -1,11 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:read_pdf_text/read_pdf_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
+import 'package:mobile_app/core/services/gemini_service.dart';
+import 'package:mobile_app/features/profile/providers/profile_provider.dart';
 import 'package:mobile_app/features/resume/providers/resume_provider.dart';
-import 'package:mobile_app/features/resume/models/resume_model.dart';
+
 import 'package:mobile_app/features/builder/widgets/xyz_auditor_widget.dart';
 
 class ResumeEditorScreen extends ConsumerStatefulWidget {
@@ -26,17 +32,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   @override
   void initState() {
     super.initState();
-    // Load existing data if available
-    final resumes = ref.read(resumesProvider).value;
-    if (resumes != null && widget.resumeId != null) {
-      try {
-        final resume = resumes.firstWhere((r) => r.resumeId == widget.resumeId);
-        // Pre-fill controllers based on logic, or empty for new draft
-        // Logic simplified for UI parity
-      } catch (e) {
-        // Handle not found
-      }
-    }
+    // In a real app, load existing data via widget.resumeId if editing
   }
 
   // Calculate generic progress based on text length
@@ -46,8 +42,101 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     return (historyScore + specsScore) * 100;
   }
 
+  Future<void> _handleImport() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'txt'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() => _isProcessing = true);
+        final path = result.files.single.path!;
+        String text = "";
+
+        if (path.endsWith('.pdf')) {
+          text = await ReadPdfText.getPDFtext(path);
+        } else if (path.endsWith('.txt')) {
+          final file = File(path);
+          text = await file.readAsString();
+        }
+
+        if (mounted) {
+          setState(() {
+            _historyController.text = text;
+            _isProcessing = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Analysis Complete. Data Extracted.")),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Import Failed: $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleBuildResume() async {
+    if (_historyController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please input work history first.")),
+      );
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+
+    try {
+      final gemini = ref.read(geminiServiceProvider);
+      final profile = ref.read(profileProvider).value;
+
+      // 1. Optimize/Generate Resume
+      final resumeData = await gemini.optimizeResume(
+        _historyController.text,
+        jobDescription:
+            _specsController.text.isNotEmpty ? _specsController.text : null,
+        profileData: profile,
+      );
+
+      // 2. Save to Vault (Create new iteration)
+      final newResumeId = await ref.read(resumesProvider.notifier).createResume(
+            theme: 'Executive',
+            data: resumeData,
+          );
+
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        // 3. Navigate to Preview (using the ID or just jumping to latest)
+        context.go('/preview/$newResumeId');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Blueprint Synthesized & Vaulted.")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Synthesis Error: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : AppColors.midnightNavy;
+    final subTextColor =
+        isDark ? Colors.white54 : AppColors.midnightNavy.withOpacity(0.6);
+    final glassColor = isDark
+        ? Colors.white.withOpacity(0.05)
+        : AppColors.midnightNavy.withOpacity(0.05);
+
     // 1. Header with Progress
     Widget buildHeader() {
       return Padding(
@@ -61,7 +150,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                   TextSpan(
                       text: "Career ",
                       style: AppTypography.header1
-                          .copyWith(color: Colors.white, fontSize: 32)),
+                          .copyWith(color: textColor, fontSize: 32)),
                   TextSpan(
                       text: "Forge.",
                       style: AppTypography.header1.copyWith(
@@ -76,7 +165,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                   child: Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: Colors.white10,
+                      color: isDark ? Colors.white10 : Colors.black12,
                       borderRadius: BorderRadius.circular(3),
                     ),
                     alignment: Alignment.centerLeft,
@@ -85,7 +174,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                       width:
                           MediaQuery.of(context).size.width * (_progress / 100),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [
+                        gradient: const LinearGradient(colors: [
                           AppColors.goldDark,
                           AppColors.strategicGold
                         ]),
@@ -112,14 +201,14 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
         child: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: glassColor,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
           ),
           child: Row(
             children: [
-              _buildSegmentBtn("WORK HISTORY", 'history'),
-              _buildSegmentBtn("TARGET SPECS", 'specs'),
+              _buildSegmentBtn("WORK HISTORY", 'history', isDark, textColor),
+              _buildSegmentBtn("TARGET SPECS", 'specs', isDark, textColor),
             ],
           ),
         ),
@@ -129,9 +218,9 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     // 3. Content Area
     Widget buildContent() {
       if (_activeSegment == 'history') {
-        return _buildHistoryInput();
+        return _buildHistoryInput(isDark, textColor, subTextColor);
       } else {
-        return _buildSpecsInput();
+        return _buildSpecsInput(isDark, textColor, subTextColor);
       }
     }
 
@@ -162,15 +251,57 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                       Row(
                         children: [
                           Expanded(
-                              child: _buildInfoCard("IMPACT FIRST",
-                                  "Quantitative data leads to 3x higher interview rates.")),
+                              child: _buildInfoCard(
+                                  "IMPACT FIRST",
+                                  "Quantitative data leads to 3x higher interview rates.",
+                                  isDark)),
                           const SizedBox(width: 16),
                           Expanded(
-                              child: _buildInfoCard("ATS READY",
-                                  "Synchronizing inputs with 500+ industry algorithms.")),
+                              child: _buildInfoCard(
+                                  "ATS READY",
+                                  "Synchronizing inputs with 500+ industry algorithms.",
+                                  isDark)),
                         ],
                       ),
-                      const SizedBox(height: 120), // Spacing for fab
+                      const SizedBox(height: 32),
+
+                      // Build Button (Moved from FAB to avoid overlap with Bottom Nav)
+                      ElevatedButton(
+                        onPressed: _isProcessing ? null : _handleBuildResume,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.midnightNavy,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          side: BorderSide(
+                              color: AppColors.strategicGold.withOpacity(0.5)),
+                          elevation: 10,
+                        ),
+                        child: _isProcessing
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          color: AppColors.strategicGold,
+                                          strokeWidth: 2)),
+                                  const SizedBox(width: 12),
+                                  Text("SYNTHESIZING...",
+                                      style: AppTypography.labelSmall.copyWith(
+                                          color: Colors.white,
+                                          letterSpacing: 3)),
+                                ],
+                              )
+                            : Text(
+                                "BUILD RESUME",
+                                style: AppTypography.labelSmall.copyWith(
+                                    color: Colors.white, letterSpacing: 3),
+                              ),
+                      ),
+                      const SizedBox(height: 100), // Spacing for Bottom Nav
                     ],
                   ),
                 ),
@@ -179,39 +310,11 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           ),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: ElevatedButton(
-          onPressed: _isProcessing
-              ? null
-              : () {
-                  // Logic to process
-                  setState(() => _isProcessing = true);
-                  // Simulate
-                  Future.delayed(const Duration(seconds: 2),
-                      () => setState(() => _isProcessing = false));
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.midnightNavy,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 56),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            side: BorderSide(color: AppColors.strategicGold.withOpacity(0.5)),
-            elevation: 10,
-          ),
-          child: Text(
-            _isProcessing ? "SYNTHESIZING ARCHITECTURALLY..." : "BUILD RESUME",
-            style: AppTypography.labelSmall
-                .copyWith(color: Colors.white, letterSpacing: 3),
-          ),
-        ),
-      ),
     );
   }
 
-  Widget _buildSegmentBtn(String label, String value) {
+  Widget _buildSegmentBtn(
+      String label, String value, bool isDark, Color textColor) {
     final isActive = _activeSegment == value;
     return Expanded(
       child: GestureDetector(
@@ -220,23 +323,27 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           duration: const Duration(milliseconds: 300),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.transparent,
+            color: isActive
+                ? (isDark ? Colors.white : AppColors.midnightNavy)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(26),
             boxShadow: isActive
-                ? [BoxShadow(color: Colors.black12, blurRadius: 10)]
+                ? [const BoxShadow(color: Colors.black12, blurRadius: 10)]
                 : [],
           ),
           alignment: Alignment.center,
           child: Text(label,
               style: AppTypography.labelSmall.copyWith(
-                  color: isActive ? AppColors.midnightNavy : Colors.white54,
+                  color: isActive
+                      ? (isDark ? AppColors.midnightNavy : Colors.white)
+                      : textColor.withOpacity(0.5),
                   fontWeight: FontWeight.w900)),
         ),
       ),
     );
   }
 
-  Widget _buildHistoryInput() {
+  Widget _buildHistoryInput(bool isDark, Color textColor, Color subTextColor) {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(30),
@@ -252,7 +359,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                     decoration: BoxDecoration(
                         color: AppColors.strategicGold.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10)),
-                    child: Icon(Icons.description_outlined,
+                    child: const Icon(Icons.description_outlined,
                         color: AppColors.strategicGold, size: 20),
                   ),
                   const SizedBox(width: 12),
@@ -261,25 +368,34 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                     children: [
                       Text("CAREER LEGACY DATA",
                           style: AppTypography.labelSmall
-                              .copyWith(color: Colors.white, fontSize: 9)),
+                              .copyWith(color: textColor, fontSize: 9)),
                       Text("Input raw history or upload.",
                           style: AppTypography.labelSmall
-                              .copyWith(color: Colors.white38, fontSize: 8)),
+                              .copyWith(color: subTextColor, fontSize: 8)),
                     ],
                   )
                 ],
               ),
-              Container(
-                // Import Button Mock
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white12),
-                  borderRadius: BorderRadius.circular(10),
+              GestureDetector(
+                onTap: _isProcessing ? null : _handleImport, // Connect function
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _isProcessing ? textColor.withOpacity(0.1) : null,
+                    border: Border.all(color: textColor.withOpacity(0.1)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _isProcessing
+                      ? SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 1, color: textColor))
+                      : Text("IMPORT FILE",
+                          style: AppTypography.labelSmall
+                              .copyWith(color: subTextColor, fontSize: 8)),
                 ),
-                child: Text("IMPORT FILE",
-                    style: AppTypography.labelSmall
-                        .copyWith(color: Colors.white54, fontSize: 8)),
               )
             ],
           ),
@@ -287,17 +403,17 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           TextField(
             controller: _historyController,
             maxLines: 10,
-            style: const TextStyle(color: Colors.white, height: 1.5),
+            style: TextStyle(color: textColor, height: 1.5),
             decoration: InputDecoration(
               hintText:
                   "Ex: Led engineering team at Tech Corp. Launched mobile app reaching 1M users...",
-              hintStyle: TextStyle(color: Colors.white24),
+              hintStyle: TextStyle(color: subTextColor.withOpacity(0.4)),
               border: InputBorder.none,
             ),
             onChanged: (v) => setState(() {}),
           ),
           const SizedBox(height: 20),
-          Divider(color: Colors.white10),
+          Divider(color: textColor.withOpacity(0.1)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -317,7 +433,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                     Text("NEXT STAGE",
                         style: AppTypography.labelSmall
                             .copyWith(color: AppColors.strategicGold)),
-                    Icon(Icons.chevron_right,
+                    const Icon(Icons.chevron_right,
                         color: AppColors.strategicGold, size: 16),
                   ],
                 ),
@@ -329,7 +445,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     );
   }
 
-  Widget _buildSpecsInput() {
+  Widget _buildSpecsInput(bool isDark, Color textColor, Color subTextColor) {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(30),
@@ -342,7 +458,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                 decoration: BoxDecoration(
                     color: AppColors.strategicGold.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10)),
-                child: Icon(Icons.gps_fixed,
+                child: const Icon(Icons.gps_fixed,
                     color: AppColors.strategicGold, size: 20),
               ),
               const SizedBox(width: 12),
@@ -351,10 +467,10 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                 children: [
                   Text("OPPORTUNITY SPECS",
                       style: AppTypography.labelSmall
-                          .copyWith(color: Colors.white, fontSize: 9)),
+                          .copyWith(color: textColor, fontSize: 9)),
                   Text("Keyword synchronization.",
                       style: AppTypography.labelSmall
-                          .copyWith(color: Colors.white38, fontSize: 8)),
+                          .copyWith(color: subTextColor, fontSize: 8)),
                 ],
               )
             ],
@@ -363,11 +479,11 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           TextField(
             controller: _specsController,
             maxLines: 10,
-            style: const TextStyle(color: Colors.white, height: 1.5),
+            style: TextStyle(color: textColor, height: 1.5),
             decoration: InputDecoration(
               hintText:
                   "Paste the Job Description or key requirements here to enable precise ATS alignment...",
-              hintStyle: TextStyle(color: Colors.white24),
+              hintStyle: TextStyle(color: subTextColor.withOpacity(0.4)),
               border: InputBorder.none,
             ),
             onChanged: (v) => setState(() {}),
@@ -377,13 +493,15 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     );
   }
 
-  Widget _buildInfoCard(String title, String desc) {
+  Widget _buildInfoCard(String title, String desc, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : AppColors.midnightNavy.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,8 +511,12 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                   .copyWith(color: AppColors.strategicGold, fontSize: 9)),
           const SizedBox(height: 4),
           Text(desc,
-              style:
-                  TextStyle(color: Colors.white54, fontSize: 10, height: 1.4)),
+              style: TextStyle(
+                  color: isDark
+                      ? Colors.white54
+                      : AppColors.midnightNavy.withOpacity(0.6),
+                  fontSize: 10,
+                  height: 1.4)),
         ],
       ),
     );

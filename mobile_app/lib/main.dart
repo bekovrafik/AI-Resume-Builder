@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/isar_service.dart';
 import 'core/app_router.dart';
@@ -17,24 +19,43 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  await dotenv.load(fileName: ".env");
+
   await AdHelper.initAds();
 
   final isarService = IsarService();
   await isarService.init();
 
+  // Set System UI Overlay Style
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent, // Fix for "black screen"
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness
+        .light, // Or dynamic based on theme, but usually best to start with one
+  ));
+  await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge); // Enforce edge-to-edge checks
+
   // Preload Theme
   final container = ProviderContainer();
   final initialTheme = await container.read(themeInitializationProvider.future);
 
+  // Re-create container WITH overrides to fix dependency issues
+  // We dispose the temporary one used for reading 'themeInitializationProvider' if we want,
+  // but it's cleaner to just create a new one with overrides.
+  container.dispose();
+
+  final appContainer = ProviderContainer(
+    overrides: [
+      isarServiceProvider.overrideWithValue(isarService),
+      themeProvider.overrideWith((ref) => ThemeNotifier(initialTheme)),
+    ],
+  );
+
   runApp(UncontrolledProviderScope(
-    container: container,
-    child: ProviderScope(
-      overrides: [
-        isarServiceProvider.overrideWithValue(isarService),
-        themeProvider.overrideWith((ref) => ThemeNotifier(initialTheme)),
-      ],
-      child: const AiResumeBuilderApp(),
-    ),
+    container: appContainer,
+    child: const AiResumeBuilderApp(),
   ));
 }
 

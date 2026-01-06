@@ -54,7 +54,7 @@ class VaultScreen extends ConsumerWidget {
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white10),
                               ),
-                              child: Icon(Icons.folder_open,
+                              child: const Icon(Icons.folder_open,
                                   size: 48, color: Colors.white24),
                             ),
                             const SizedBox(height: 24),
@@ -123,7 +123,7 @@ class VaultScreen extends ConsumerWidget {
                                         const SizedBox(height: 4),
                                         Text(
                                           '${resume.theme} • ${DateFormat.yMMMd().format(resume.createdAt)}',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                               color: Colors.white54,
                                               fontSize: 12),
                                         ),
@@ -150,7 +150,7 @@ class VaultScreen extends ConsumerWidget {
                           color: AppColors.strategicGold)),
                   error: (err, stack) => Center(
                       child: Text('Error: $err',
-                          style: TextStyle(color: AppColors.errorRed))),
+                          style: const TextStyle(color: AppColors.errorRed))),
                 ),
               ),
             ],

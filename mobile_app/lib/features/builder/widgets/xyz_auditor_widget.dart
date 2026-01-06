@@ -90,7 +90,7 @@ class XyzAuditorWidget extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Expanded(
                                 child: Text('"$vague"',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         color: Colors.white54,
                                         fontSize: 10,
                                         fontStyle: FontStyle.italic),
@@ -107,7 +107,7 @@ class XyzAuditorWidget extends ConsumerWidget {
                                 color: AppColors.strategicGold,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.arrow_forward,
+                              child: const Icon(Icons.arrow_forward,
                                   size: 12, color: AppColors.midnightNavy),
                             ),
                             const SizedBox(width: 12),
@@ -189,7 +189,7 @@ class XyzAuditorWidget extends ConsumerWidget {
       error: (e, s) => Padding(
         padding: const EdgeInsets.all(16),
         child: Text("Audit unavailable: $e",
-            style: TextStyle(color: AppColors.errorRed)),
+            style: const TextStyle(color: AppColors.errorRed)),
       ),
     );
   }
