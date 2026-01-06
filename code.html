@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Resume Builder - Launch Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;family=Inter:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#F4C45D", // Extracted gold/yellow from the icon
+              "primary-dark": "#D9A63C", // Darker shade for accents
+              "primary-accent": "#FACC15", // Brighter yellow for the badge
+              "background-light": "#F9FAFB", // Very light gray/off-white for clean look
+              "background-dark": "#111827", // Deep charcoal/black for dark mode
+              "surface-light": "#FFFFFF",
+              "surface-dark": "#1F2937",
+              "text-main-light": "#1F2937",
+              "text-main-dark": "#F9FAFB",
+              "text-muted-light": "#6B7280",
+              "text-muted-dark": "#9CA3AF",
+              "doc-bg": "#EEF2FF", // Light blue-ish white for doc
+              "doc-shadow": "#CBD5E1", 
+            },
+            fontFamily: {
+              display: ["Playfair Display", "serif"],
+              sans: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "1rem",
+              'xl': "1.5rem",
+              '2xl': "2rem",
+              '3xl': "3rem", // Added for larger rounded corners
+            },
+            animation: {
+                'fade-in-up': 'fadeInUp 1s ease-out forwards',
+                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+                fadeInUp: {
+                    '0%': { opacity: '0', transform: 'translateY(20px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                float: {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                }
+            }
+          },
+        },
+      };
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center font-sans antialiased overflow-hidden selection:bg-primary selection:text-white">
+<main class="relative w-full h-full max-w-md mx-auto flex flex-col items-center justify-between py-12 px-8 min-h-screen">
+<div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
+<div class="w-full h-8"></div>
+<div class="flex flex-col items-center justify-center flex-grow w-full animate-fade-in-up">
+<div class="flex flex-col items-center gap-8 md:gap-10">
+<div class="relative group animate-float">
+<div class="absolute inset-0 bg-primary/20 dark:bg-primary/10 rounded-full blur-2xl transform scale-110 group-hover:scale-125 transition-transform duration-700"></div>
+<div class="relative w-40 h-40 bg-white dark:bg-surface-dark rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] flex items-center justify-center border border-white/50 dark:border-gray-700 overflow-hidden backdrop-blur-sm">
+<div class="relative w-24 h-32">
+<div class="absolute top-2 left-2 w-full h-full bg-doc-shadow/30 rounded-lg transform translate-x-1 translate-y-1"></div>
+<div class="absolute inset-0 bg-doc-bg dark:bg-gray-200 rounded-lg shadow-sm overflow-hidden">
+<div class="absolute top-0 right-0 w-0 h-0 border-t-[24px] border-r-[24px] border-t-white/0 border-r-gray-300/50 dark:border-r-gray-400/50 drop-shadow-sm"></div>
+<div class="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-gray-100 to-white transform rotate-0 rounded-bl-lg shadow-sm"></div>
+<div class="absolute top-4 left-4 w-12 h-5 bg-primary rounded-sm opacity-90"></div>
+<div class="absolute top-12 left-4 right-4 h-1 bg-primary/60 rounded-full"></div>
+<div class="absolute top-16 left-4 right-4 h-1 bg-primary/60 rounded-full"></div>
+</div>
+<div class="absolute bottom-6 left-[-10px] right-2 h-14 bg-primary-accent shadow-lg rounded-r-lg flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
+<div class="absolute left-0 top-0 bottom-0 w-2 bg-black/10 rounded-l-sm"></div> 
+<span class="text-white font-display font-semibold text-3xl tracking-wide drop-shadow-sm">AI</span>
+</div>
+</div>
+</div>
+</div>
+<div class="text-center space-y-3 max-w-xs mx-auto">
+<h1 class="text-4xl font-display font-bold text-text-main-light dark:text-text-main-dark tracking-tight leading-tight">
+                        AI Resume <br/><span class="text-primary-dark dark:text-primary">Builder</span>
+</h1>
+<div class="h-0.5 w-12 bg-primary/30 mx-auto rounded-full"></div>
+<p class="text-text-muted-light dark:text-text-muted-dark text-xs uppercase tracking-[0.25em] font-medium opacity-70 pt-1">
+                        Craft Your Legacy
+                    </p>
+</div>
+</div>
+</div>
+<div class="w-full flex flex-col items-center space-y-8 animate-fade-in-up" style="animation-delay: 0.3s;">
+<div class="flex items-center space-x-3">
+<div class="w-2.5 h-2.5 bg-primary/40 rounded-full animate-pulse" style="animation-delay: 0s"></div>
+<div class="w-2.5 h-2.5 bg-primary/70 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+<div class="w-2.5 h-2.5 bg-primary rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+</div>
+<div class="text-center">
+<p class="text-[10px] text-text-muted-light dark:text-text-muted-dark font-light opacity-50 tracking-widest">
+                    VERSION 2.0.1
+                </p>
+</div>
+</div>
+</main>
+<script>
+        // Simple script to toggle dark mode for testing purposes if needed by user interacting with system pref
+        // This respects the 'class' strategy in tailwind config
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+</body></html>

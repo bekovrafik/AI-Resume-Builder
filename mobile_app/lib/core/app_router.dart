@@ -48,9 +48,16 @@ final appRouterProvider = GoRouter(
           builder: (context, state) => const MarketScreen(),
         ),
         GoRoute(
-          path: '/preview/:id',
+          path: '/preview',
           builder: (context, state) =>
-              ResumePreviewScreen(resumeId: state.pathParameters['id']),
+              const ResumePreviewScreen(resumeId: null),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) =>
+                  ResumePreviewScreen(resumeId: state.pathParameters['id']),
+            ),
+          ],
         ),
         GoRoute(
           path: '/vault',

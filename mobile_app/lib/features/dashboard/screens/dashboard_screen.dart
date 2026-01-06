@@ -200,7 +200,12 @@ class DashboardScreen extends ConsumerWidget {
                       title: "Concierge & Support",
                       subtitle: "Inquiry Dispatch",
                       icon: Icons.support_agent,
-                      onTap: () {}, // TODO: Implement
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Concierge Support Coming Soon")),
+                        );
+                      },
                       isFirst: true,
                       defaultIconColor: iconColor,
                       defaultTitleColor: textColor,
@@ -213,7 +218,13 @@ class DashboardScreen extends ConsumerWidget {
                       title: "Legal Standard",
                       subtitle: "Institutional Privacy Policy",
                       icon: Icons.policy_outlined,
-                      onTap: () {}, // TODO: Implement
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  "Privacy Policy: Standard GDPR Compliance")),
+                        );
+                      },
                       defaultIconColor: iconColor,
                       defaultTitleColor: textColor,
                     ),

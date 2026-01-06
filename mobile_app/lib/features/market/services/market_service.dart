@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/features/market/models/market_card_model.dart';
 import 'package:mobile_app/core/services/gemini_service.dart';
 
+import 'package:html_unescape/html_unescape.dart';
+
 class MarketService {
   final GeminiService? _geminiService;
+  final _unescape = HtmlUnescape();
 
   static const String _apiKey = '82608568-43f8-4566-971f-a242711dc749';
   static const String _baseUrl = 'https://jooble.org/api/';
@@ -103,7 +106,9 @@ class MarketService {
 
   String _cleanSnippet(String snippet) {
     // Remove HTML tags often present in Jooble snippets
-    return snippet.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    final text = snippet.replaceAll(RegExp(r'<[^>]*>'), '');
+    // Decode entities like &nbsp;
+    return _unescape.convert(text).trim();
   }
 
   List<String> _extractTags(String snippet) {

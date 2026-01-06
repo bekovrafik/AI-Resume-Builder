@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -9,15 +10,15 @@ class PdfGeneratorService {
     final pdf = pw.Document();
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
           switch (theme) {
             case 'Modern':
-              return _buildModernLayout(data);
+              return [_buildModernLayout(data)];
             case 'Executive':
             default:
-              return _buildExecutiveLayout(data);
+              return [_buildExecutiveLayout(data)];
           }
         },
       ),
@@ -128,6 +129,21 @@ class PdfGeneratorService {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
+              if (data.avatarUrl != null && File(data.avatarUrl!).existsSync())
+                pw.Container(
+                  width: 100,
+                  height: 100,
+                  margin: const pw.EdgeInsets.only(bottom: 16),
+                  decoration: pw.BoxDecoration(
+                    shape: pw.BoxShape.circle,
+                    image: pw.DecorationImage(
+                      image: pw.MemoryImage(
+                        File(data.avatarUrl!).readAsBytesSync(),
+                      ),
+                      fit: pw.BoxFit.cover,
+                    ),
+                  ),
+                ),
               pw.Text(
                 data.fullName?.split(' ').first ?? "Name",
                 style: pw.TextStyle(

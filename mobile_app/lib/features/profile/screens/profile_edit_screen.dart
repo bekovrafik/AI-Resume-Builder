@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart'; // Added
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
@@ -23,6 +25,17 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   final _linkedInController = TextEditingController();
 
   bool _initialized = false;
+  String? _pickedImagePath;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImagePath = pickedFile.path;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -39,6 +52,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     _roleController.text = data.targetRole ?? '';
     _emailController.text = data.email ?? '';
     _linkedInController.text = data.linkedIn ?? '';
+    _pickedImagePath = data.avatarUrl;
     _initialized = true;
   }
 
@@ -78,38 +92,51 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Center(
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark
-                                    ? Colors.white10
-                                    : AppColors.midnightNavy.withOpacity(0.05),
-                                border: Border.all(
-                                    color: AppColors.strategicGold, width: 2),
-                              ),
-                              child: const Icon(Icons.person,
-                                  size: 50, color: Colors.grey),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
                                 decoration: BoxDecoration(
-                                  color: AppColors.midnightNavy,
                                   shape: BoxShape.circle,
+                                  color: isDark
+                                      ? Colors.white10
+                                      : AppColors.midnightNavy
+                                          .withOpacity(0.05),
                                   border: Border.all(
-                                      color: AppColors.strategicGold),
+                                      color: AppColors.strategicGold, width: 2),
+                                  image: _pickedImagePath != null
+                                      ? DecorationImage(
+                                          image: FileImage(
+                                              File(_pickedImagePath!)),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
                                 ),
-                                child: const Icon(Icons.camera_alt,
-                                    color: AppColors.strategicGold, size: 16),
+                                child: _pickedImagePath == null
+                                    ? const Icon(Icons.person,
+                                        size: 50, color: Colors.grey)
+                                    : null,
                               ),
-                            )
-                          ],
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.midnightNavy,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: AppColors.strategicGold),
+                                  ),
+                                  child: const Icon(Icons.camera_alt,
+                                      color: AppColors.strategicGold, size: 16),
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -237,6 +264,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       newData.targetRole = _roleController.text;
       newData.email = _emailController.text;
       newData.linkedIn = _linkedInController.text;
+      newData.avatarUrl = _pickedImagePath;
 
       ref.read(profileProvider.notifier).saveProfile(newData);
 

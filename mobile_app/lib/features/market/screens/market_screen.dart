@@ -438,15 +438,15 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                     )
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
                 Text(
                   card.title ?? "Job Title",
                   style: AppTypography.header1
-                      .copyWith(color: textColor, fontSize: 32, height: 1.1),
-                  maxLines: 3,
+                      .copyWith(color: textColor, fontSize: 24, height: 1.1),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Text(
                   card.salaryRange ?? "\$100k - \$150k",
                   style: AppTypography.header3

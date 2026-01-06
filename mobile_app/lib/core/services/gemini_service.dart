@@ -44,6 +44,7 @@ You DO NOT just "write" a resume. You PERFORM A STRUCTURED TRANSFORMATION.
 - Do not invent experiences.
 - Do not fabricate certifications.
 - If data is completely missing, be concise.
+- Do not artificially limit length. If input details are rich, produce a comprehensive, multi-page ready output.
 ''';
 
   GeminiService(String apiKey)
@@ -123,7 +124,14 @@ You DO NOT just "write" a resume. You PERFORM A STRUCTURED TRANSFORMATION.
     final json = jsonDecode(_cleanJson(response.text!));
 
     // Map JSON to ResumeData entity
-    return _mapJsonToResumeData(json);
+    final generatedData = _mapJsonToResumeData(json);
+
+    // Preserve profile image if available
+    if (profileData != null && profileData.avatarUrl != null) {
+      generatedData.avatarUrl = profileData.avatarUrl;
+    }
+
+    return generatedData;
   }
 
   Future<Map<String, dynamic>> suggestMetrics(String history) async {
@@ -167,7 +175,7 @@ WORK HISTORY: "$history"
     // or simply return logic.
 
     // NOTE: True image generation isn't directly exposed via generateContent in the same way for all models yet.
-    // TODO: Implement actual image generation when SDK supports it.
+    // Note: Actual image generation via the SDK is pending future release.
 
     return "https://via.placeholder.com/150"; // Placeholder
   }

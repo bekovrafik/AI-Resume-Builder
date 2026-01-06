@@ -46,6 +46,7 @@ dependencies:
   read_pdf_text: ^0.3.1
   flutter_dotenv: ^6.0.0
   http: ^1.6.0
+  html_unescape: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -54,8 +55,26 @@ dev_dependencies:
   build_runner: ^2.4.11
   isar_generator: ^3.1.0+1
   json_serializable: ^6.8.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.4
 
 flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/icon/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#F9FAFB"
+  color_dark: "#111827"
+  image: "assets/icon/app_icon.png"
+  android_12:
+    image: "assets/icon/app_icon.png"
+    color: "#F9FAFB"
+    color_dark: "#111827"

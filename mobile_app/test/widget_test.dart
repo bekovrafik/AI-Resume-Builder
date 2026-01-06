@@ -17,8 +17,6 @@ class MockAdSynchronizationService extends AdSynchronizationService {
   @override
   void loadAppOpenAd() {}
   @override
-  void loadRewardedAd() {}
-  @override
   void loadRewardedInterstitialAd() {}
   @override
   void showAppOpenAdIfAvailable() {}
