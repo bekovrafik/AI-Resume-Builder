@@ -174,7 +174,7 @@ class DashboardScreen extends ConsumerWidget {
                         color: isDark ? Colors.white12 : Colors.black12),
                     _buildSettingRow(
                       context,
-                      title: "Narrative Refinement",
+                      title: "Chat Architect",
                       subtitle: "Synthesize with AI Architect",
                       icon: Icons.chat_bubble_outline,
                       iconColor: AppColors.strategicGold,

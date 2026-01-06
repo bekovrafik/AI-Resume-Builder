@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/premium/providers/polish_token_provider.dart';
-import 'package:mobile_app/core/services/ad_synchronization_service.dart';
 
 class BulletPointPolisher extends ConsumerStatefulWidget {
   final String initialText;
@@ -45,7 +44,7 @@ class _BulletPointPolisherState extends ConsumerState<BulletPointPolisher> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Insufficient AI Credits"),
-        content: const Text("Watch a quick ad to earn 5 AI Polish Credits?"),
+        content: const Text("You are out of credits. Refill for free?"),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -53,18 +52,13 @@ class _BulletPointPolisherState extends ConsumerState<BulletPointPolisher> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              final adService = ref.read(adSynchronizationProvider);
-              adService.showRewardedAd(
-                onUserEarnedReward: (reward) {
-                  ref.read(polishTokenProvider.notifier).addCredits(5);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Earned 5 Credits! Ready to Polish.")),
-                  );
-                },
+              // Free refill since ads are removed
+              ref.read(polishTokenProvider.notifier).addCredits(5);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Refilled 5 Credits (Free)")),
               );
             },
-            child: const Text("Watch Ad"),
+            child: const Text("Refill Credits"),
           )
         ],
       ),

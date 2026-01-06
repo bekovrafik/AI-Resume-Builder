@@ -8,11 +8,11 @@ final adSynchronizationProvider = Provider<AdSynchronizationService>((ref) {
 
 class AdSynchronizationService {
   AppOpenAd? _appOpenAd;
-  RewardedAd? _rewardedAd;
+  // RewardedAd? _rewardedAd; // Removed
   RewardedInterstitialAd? _rewardedInterstitialAd;
 
   bool _isAppOpenAdAvailable = false;
-  bool _isRewardedAdAvailable = false;
+  // bool _isRewardedAdAvailable = false; // Removed
   bool _isRewardedInterstitialAdAvailable = false;
 
   AdSynchronizationService({bool autoStart = true}) {
@@ -22,7 +22,7 @@ class AdSynchronizationService {
   void _initPreloading() {
     // Initial pre-load of all high-value units
     loadAppOpenAd();
-    loadRewardedAd();
+    // loadRewardedAd(); // Removed
     loadRewardedInterstitialAd();
   }
 
@@ -64,44 +64,7 @@ class AdSynchronizationService {
     }
   }
 
-  // --- Rewarded Ad (Themes / Credits) ---
-  void loadRewardedAd() {
-    RewardedAd.load(
-      adUnitId: AdHelper.rewardedAdUnitId, // Need to add
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          _rewardedAd = ad;
-          _isRewardedAdAvailable = true;
-        },
-        onAdFailedToLoad: (error) {
-          _isRewardedAdAvailable = false;
-        },
-      ),
-    );
-  }
-
-  void showRewardedAd({required Function(RewardItem) onUserEarnedReward}) {
-    if (_isRewardedAdAvailable && _rewardedAd != null) {
-      _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          loadRewardedAd();
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-          loadRewardedAd();
-        },
-      );
-      _rewardedAd!
-          .show(onUserEarnedReward: (ad, reward) => onUserEarnedReward(reward));
-      _rewardedAd = null;
-      _isRewardedAdAvailable = false;
-    } else {
-      // Fallback or loading state logic if not ready (though pre-load should prevent this)
-      loadRewardedAd();
-    }
-  }
+  // --- Rewarded Ad Removed per configuration ---
 
   // --- Rewarded Interstitial (Resume Build / PDF) ---
   void loadRewardedInterstitialAd() {

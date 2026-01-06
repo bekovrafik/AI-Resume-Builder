@@ -174,8 +174,16 @@ WORK HISTORY: "$history"
 
   Future<List<Map<String, String>>> generateInterviewPrep(
       ResumeData resume) async {
+    final context = StringBuffer();
+    context.writeln("TARGET ROLE: ${resume.targetRole}");
+    if (resume.summary != null) context.writeln("SUMMARY: ${resume.summary}");
+    if (resume.experiences != null && resume.experiences!.isNotEmpty) {
+      context.writeln(
+          "KEY EXPERIENCE: ${resume.experiences!.first.role} at ${resume.experiences!.first.company}");
+    }
+
     final prompt =
-        "Generate 5 behavioral interview questions for this resume. Return JSON array.\n\nRESUME: ${resume.targetRole}"; // Simplified prompt
+        "Generate 5 high-stakes behavioral interview questions tailored to this candidate. Focus on leadership, conflict resolution, and strategic impact. Return JSON array.\n\nCANDIDATE CONTEXT:\n$context";
 
     final schema = Schema.array(
         items: Schema.object(properties: {
@@ -250,6 +258,18 @@ Ensure the links are valid. If you can't find a direct link, use a plausible sea
     } catch (e) {
       return [];
     }
+  }
+
+  ChatSession startChat() {
+    return _model.startChat(history: [
+      Content.system(_architectSystemPrompt),
+      Content.text(
+          "Hello. I am ready to act as your Executive Resume Architect. Please provide your current resume details or ask for specific refinements."),
+      Content.model([
+        TextPart(
+            "Understood. I am online and initialized as the Executive Resume Architect. I am ready to apply the XYZ formula, optimize for ATS, and refine your narrative for high-impact roles. How shall we begin?")
+      ])
+    ]);
   }
 
   String _cleanJson(String text) {

@@ -7,6 +7,8 @@ import 'package:mobile_app/core/ui/app_typography.dart';
 
 import 'package:mobile_app/core/ui/gradient_background.dart';
 
+import 'package:mobile_app/core/services/gemini_service.dart';
+
 // Simple provider for chat state (keeping original logic)
 final chatMessagesProvider = StateProvider<List<Content>>((ref) => []);
 
@@ -22,6 +24,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
   final _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  ChatSession? _chatSession;
 
   final List<String> _quickActions = [
     "Apply Executive Tone",
@@ -31,21 +34,75 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
     "Shorten Summary"
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Initialize session lazily or here?
+    // We'll init it on first use or safely in build/post-frame if we want to sync history.
+    // For now, let's just ensure we have one.
+  }
+
+  Future<void> _ensureSession() async {
+    if (_chatSession != null) return;
+
+    final gemini = ref.read(geminiServiceProvider);
+
+    // Attempt to sync with existing provider state if any (simple reconstruction)
+    // Note: This matches the "fresh start" behavior if provider is empty.
+    _chatSession = gemini.startChat();
+
+    // If we wanted to restore history, we would pass it to startChat inside GeminiService
+    // via a new method overload, but for this iteration, we start fresh context
+    // to ensure the system prompt is the anchor.
+    // If the user has old messages in the UI, the AI might not "remember" them
+    // unless we replay them. For simplicity in this "Refinement" tool,
+    // we assume a session is ephemeral or user hits refresh.
+  }
+
   Future<void> _sendMessage([String? quickAction]) async {
     final text = quickAction ?? _textController.text.trim();
     if (text.isEmpty) return;
 
     if (quickAction == null) _textController.clear();
-    setState(() => _isLoading = true);
 
+    // 1. Update UI immediately
     final userContent = Content.text(text);
-
-    // Update local state immediately
     ref
         .read(chatMessagesProvider.notifier)
         .update((state) => [...state, userContent]);
 
-    // Scroll to bottom
+    setState(() => _isLoading = true);
+    _scrollToBottom();
+
+    try {
+      await _ensureSession();
+
+      // 2. Send to Gemini
+      final response = await _chatSession!.sendMessage(userContent);
+
+      if (response.text != null) {
+        final aiResponse = Content.model([TextPart(response.text!)]);
+
+        // 3. Update UI with AI Response
+        ref
+            .read(chatMessagesProvider.notifier)
+            .update((state) => [...state, aiResponse]);
+
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -55,37 +112,6 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
         );
       }
     });
-
-    try {
-      // Actual logic would go here. Mocking for UI port.
-      await Future.delayed(const Duration(seconds: 2));
-
-      final aiResponse = Content.model([
-        TextPart(
-            "I've analyzed your input. To align with executive standards, I recommend quantifying your impact. Here is a refined version focused on revenue growth.")
-      ]);
-      ref
-          .read(chatMessagesProvider.notifier)
-          .update((state) => [...state, aiResponse]);
-
-      // Scroll to bottom again
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
   }
 
   @override

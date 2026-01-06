@@ -13,27 +13,13 @@ class AdHelper {
     }
   }
 
-  static String get nativeAdUnitId {
-    if (Platform.isAndroid) {
-      return 'ca-app-pub-7841436065695087/9235808214';
-    } else if (Platform.isIOS) {
-      return 'ca-app-pub-7841436065695087/1492393022';
-    } else {
-      throw UnsupportedError('Unsupported platform');
-    }
-  }
-
   static String get appOpenAdUnitId {
     if (Platform.isAndroid) return 'ca-app-pub-7841436065695087/8429142945';
     if (Platform.isIOS) return 'ca-app-pub-7841436065695087/9411052120';
     throw UnsupportedError('Unsupported platform');
   }
 
-  static String get rewardedAdUnitId {
-    if (Platform.isAndroid) return 'ca-app-pub-7841436065695087/6234417964';
-    if (Platform.isIOS) return 'ca-app-pub-7841436065695087/1863734593';
-    throw UnsupportedError('Unsupported platform');
-  }
+  // Rewarded Ad Removed
 
   static String get rewardedInterstitialAdUnitId {
     if (Platform.isAndroid) return 'ca-app-pub-7841436065695087/8046193084';

@@ -8,6 +8,7 @@ import 'package:mobile_app/features/market/services/market_service.dart';
 import 'package:mobile_app/features/market/models/market_card_model.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class MarketScreen extends ConsumerStatefulWidget {
   const MarketScreen({super.key});
@@ -27,9 +28,14 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   final TextEditingController _roleFilterCtrl = TextEditingController();
   final TextEditingController _locFilterCtrl = TextEditingController();
 
+  // Ad State
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+
   @override
   void initState() {
     super.initState();
+    _loadAd();
     // Delay to allow provider to read
     Future.microtask(() {
       final profile = ref.read(profileProvider).value;
@@ -42,6 +48,31 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
       });
       _loadFeed();
     });
+  }
+
+  void _loadAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID
+      request: const AdRequest(),
+      size: AdSize.mediumRectangle,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          ad.dispose();
+          // ad failed to load
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFeed() async {
@@ -368,7 +399,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(32.0),
+            // Increased bottom padding to avoid overlap with buttons
+            padding: const EdgeInsets.fromLTRB(32, 32, 32, 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -385,16 +417,24 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                           size: 30, color: Colors.grey),
                     ),
                     const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(card.company ?? "Company",
-                            style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.strategicGold, fontSize: 12)),
-                        Text(card.location ?? "Remote",
-                            style: AppTypography.bodySmall
-                                .copyWith(color: textColor.withOpacity(0.6))),
-                      ],
+                    // Constrain the text so it doesn't overflow
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(card.company ?? "Company",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.strategicGold,
+                                  fontSize: 12)),
+                          Text(card.location ?? "Remote",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.bodySmall
+                                  .copyWith(color: textColor.withOpacity(0.6))),
+                        ],
+                      ),
                     )
                   ],
                 ),
@@ -403,6 +443,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                   card.title ?? "Job Title",
                   style: AppTypography.header1
                       .copyWith(color: textColor, fontSize: 32, height: 1.1),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -463,62 +505,73 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   Widget _buildAdCard(MarketCardModel card, bool isDark, Color textColor) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
-              isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            ]),
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: AppColors.strategicGold.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("SPONSORED",
-                      style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.strategicGold, letterSpacing: 2)),
-                  const SizedBox(height: 24),
-                  Icon(Icons.auto_graph,
-                      size: 64, color: textColor.withOpacity(0.8)),
-                  const SizedBox(height: 24),
-                  Text(
-                    card.adHeadline ?? "Premium Offer",
-                    style: AppTypography.header2.copyWith(color: textColor),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    card.adBody ?? "Check this out.",
-                    style: AppTypography.bodySmall
-                        .copyWith(color: textColor.withOpacity(0.7)),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+          Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: _isAdLoaded && _bannerAd != null
+                      ? SizedBox(
+                          width: _bannerAd!.size.width.toDouble(),
+                          height: _bannerAd!.size.height.toDouble(),
+                          child: AdWidget(ad: _bannerAd!),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const CircularProgressIndicator(
+                                color: AppColors.strategicGold),
+                            const SizedBox(height: 16),
+                            Text("Loading Parnter Offer...",
+                                style: AppTypography.labelSmall.copyWith(
+                                    color: textColor.withOpacity(0.5))),
+                          ],
+                        ),
+                ),
               ),
-            ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                    color: AppColors.strategicGold.withOpacity(0.1),
+                    borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30))),
+                child: Text(
+                  "SPONSORED",
+                  textAlign: TextAlign.center,
+                  style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.strategicGold,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
           ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-                color: AppColors.strategicGold.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30))),
-            child: Center(
-              child: Text(
-                card.adCta?.toUpperCase() ?? "LEARN MORE",
-                style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.strategicGold,
-                    fontWeight: FontWeight.bold),
-              ),
+          Positioned(
+            bottom: 32,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionBtn(Icons.close, Colors.grey,
+                    () => _swiperController.swipe(CardSwiperDirection.left)),
+                // Dummy Check button for consistency, though ads usually click-through
+                _buildActionBtn(Icons.arrow_forward, AppColors.strategicGold,
+                    () => _swiperController.swipe(CardSwiperDirection.right)),
+              ],
             ),
           )
         ],

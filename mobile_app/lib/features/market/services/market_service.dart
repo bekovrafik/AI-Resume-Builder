@@ -14,32 +14,28 @@ class MarketService {
       : _geminiService = geminiService;
 
   Future<List<MarketCardModel>> fetchFeed(String role, String location) async {
-    try {
-      final url = Uri.parse('$_baseUrl$_apiKey');
+    // Unified list processing
+    List<MarketCardModel> rawJobs = [];
 
-      final requestBody = jsonEncode({
-        'keywords': role,
-        'location': location,
-      });
+    // 1. Try Jooble
+    if (rawJobs.isEmpty) {
+      try {
+        final url = Uri.parse('$_baseUrl$_apiKey');
+        final requestBody = jsonEncode({
+          'keywords': role,
+          'location': location,
+        });
 
-      // print("JOOBLE REQUEST: $url");
-      // print("JOOBLE BODY: $requestBody");
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: requestBody,
+        );
 
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: requestBody,
-      );
-
-      // print("JOOBLE RESPONSE CODE: ${response.statusCode}");
-      // print("JOOBLE RESPONSE BODY: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> jobs = data['jobs'] ?? [];
-
-        if (jobs.isNotEmpty) {
-          return jobs.map((job) {
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> jobs = data['jobs'] ?? [];
+          rawJobs = jobs.map((job) {
             return MarketCardModel(
               id: job['id']?.toString() ?? DateTime.now().toString(),
               type: MarketCardType.job,
@@ -53,19 +49,17 @@ class MarketService {
             );
           }).toList();
         }
+      } catch (e) {
+        // Fallthrough
       }
-    } catch (e) {
-      // print("Jooble Error: $e");
     }
 
-    // Fallback: Use Gemini Grounding if Jooble failed or returned 0
-    if (_geminiService != null) {
+    // 2. Fallback to Gemini Grounding
+    if (rawJobs.isEmpty && _geminiService != null) {
       try {
-        // print("FALLBACK: Using Gemini Grounding for $role in $location");
         final groundJobs =
             await _geminiService.searchJobsWithGrounding(role, location);
-
-        return groundJobs.map((job) {
+        rawJobs = groundJobs.map((job) {
           return MarketCardModel(
             id: DateTime.now().millisecondsSinceEpoch.toString() +
                 (job['title'] ?? ''),
@@ -80,11 +74,31 @@ class MarketService {
           );
         }).toList();
       } catch (e) {
-        // print("Gemini Fallback Error: $e");
+        // Fallthrough
       }
     }
 
-    return [];
+    return _injectAds(rawJobs);
+  }
+
+  List<MarketCardModel> _injectAds(List<MarketCardModel> jobs) {
+    if (jobs.isEmpty) return [];
+
+    final List<MarketCardModel> feed = [];
+    for (int i = 0; i < jobs.length; i++) {
+      feed.add(jobs[i]);
+      // Inject Ad after every 3rd card (indices 2, 5, 8...)
+      if ((i + 1) % 3 == 0) {
+        feed.add(MarketCardModel(
+          id: "ad_slab_${i ~/ 3}",
+          type: MarketCardType.ad,
+          // Ad properties can be generic here, view handles the BannerAd widget
+          adHeadline: "Featured Opportunity",
+          adBody: "Apply with one tap using our AI.",
+        ));
+      }
+    }
+    return feed;
   }
 
   String _cleanSnippet(String snippet) {
