@@ -1,10 +1,30 @@
 {
   "project_info": {
     "project_number": "277481043178",
+    "firebase_url": "https://ai-resume-builder-bf4ca-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "ai-resume-builder-bf4ca",
     "storage_bucket": "ai-resume-builder-bf4ca.firebasestorage.app"
   },
   "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:277481043178:android:5ca4aa40b7c560000b1393",
+        "android_client_info": {
+          "package_name": "com.airesumebuilder.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5kjMKqfA-3Uueq5u7lJOpiElUq7C6jWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
     {
       "client_info": {
         "mobilesdk_app_id": "1:277481043178:android:64559ce7bef64c510b1393",

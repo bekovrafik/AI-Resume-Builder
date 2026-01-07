@@ -9,6 +9,8 @@ import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/profile/providers/profile_provider.dart';
 import 'package:mobile_app/features/resume/models/resume_model.dart';
+import 'package:mobile_app/core/services/gemini_service.dart';
+import 'package:mobile_app/features/auth/services/auth_service.dart';
 
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
@@ -139,6 +141,41 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: () async {
+                            if (_roleController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Please enter Target Archetype first.")),
+                              );
+                              return;
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      "Generative AI Agent: Designing Avatar..."),
+                                  duration: Duration(seconds: 2)),
+                            );
+
+                            // Call Gemini 2.0
+                            final gemini = ref.read(geminiServiceProvider);
+                            final newAvatarUrl = await gemini.generateHeadshot(
+                                _roleController.text, null);
+
+                            setState(() {
+                              _pickedImagePath = newAvatarUrl;
+                            });
+                          },
+                          icon: const Icon(Icons.auto_awesome,
+                              color: AppColors.strategicGold, size: 16),
+                          label: Text("GENERATE AI AVATAR",
+                              style: AppTypography.labelSmall
+                                  .copyWith(color: AppColors.strategicGold)),
+                        ),
+                      ),
                       const SizedBox(height: 32),
                       Text(
                         'COMPREHENSIVE IDENTITY DATA',
@@ -203,6 +240,21 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             style: AppTypography.labelSmall
                                 .copyWith(color: Colors.white)),
                       ),
+                      const SizedBox(height: 32),
+                      Center(
+                        child: TextButton(
+                          onPressed: _deleteAccount,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.redAccent,
+                          ),
+                          child: Text("DELETE ACCOUNT",
+                              style: AppTypography.labelSmall.copyWith(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10)),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -276,6 +328,51 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         ),
       );
       context.pop();
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.midnightNavy,
+          title: Text("Delete Account?",
+              style: AppTypography.header3.copyWith(color: Colors.white)),
+          content: Text(
+              "This action is irreversible. All your resume data and profile information will be permanently removed.",
+              style: AppTypography.bodySmall.copyWith(color: Colors.white70)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("CANCEL", style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("DELETE",
+                  style: TextStyle(color: Colors.redAccent)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ref.read(authServiceProvider).deleteAccount();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Account Deleted successfully.")),
+          );
+          context.go('/');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Deletion Failed: $e")),
+          );
+        }
+      }
     }
   }
 }

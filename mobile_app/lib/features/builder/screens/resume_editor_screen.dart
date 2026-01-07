@@ -7,6 +7,7 @@ import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/features/builder/providers/resume_editor_provider.dart';
 import 'package:mobile_app/features/builder/widgets/xyz_auditor_widget.dart';
+import 'package:mobile_app/features/builder/widgets/chat_architect_sheet.dart';
 
 class ResumeEditorScreen extends ConsumerStatefulWidget {
   final String? resumeId;
@@ -38,15 +39,16 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
 
   void _listenToState() {
     ref.listen(resumeEditorProvider, (previous, next) {
-      if (next.errorMessage != null) {
+      if (next.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage!)),
+          SnackBar(content: Text(next.error.toString())),
         );
-        ref.read(resumeEditorProvider.notifier).clearMessages();
+        // No need to clear messages in AsyncValue pattern usually, but if we want to reset:
+        // ref.read(resumeEditorProvider.notifier).clearMessages();
       }
-      if (next.resultMessage != null) {
+      if (next.hasValue && next.value!.resultMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.resultMessage!)),
+          SnackBar(content: Text(next.value!.resultMessage!)),
         );
         ref.read(resumeEditorProvider.notifier).clearMessages();
       }
@@ -62,7 +64,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
 
   Future<void> _onImportTap() async {
     final importedText =
-        await ref.read(resumeEditorProvider.notifier).handleImport();
+        await ref.read(resumeEditorProvider.notifier).handleImportWithReturn();
     if (importedText != null && mounted) {
       setState(() {
         _historyController.text = importedText;
@@ -87,7 +89,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   Widget build(BuildContext context) {
     _listenToState();
     final editorState = ref.watch(resumeEditorProvider);
-    final isProcessing = editorState.isProcessing;
+    final isProcessing = editorState.isLoading;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : AppColors.midnightNavy;
@@ -204,6 +206,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                           padding: const EdgeInsets.only(top: 16.0),
                           child: XyzAuditorWidget(
                             textToAnalyze: _historyController.text,
+                            targetSpecs: _specsController.text,
                             onDismiss: () => setState(() => _showAudit = false),
                           ),
                         ),
@@ -362,6 +365,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             ],
           ),
           const SizedBox(height: 20),
+          const SizedBox(height: 20),
           TextField(
             controller: _historyController,
             maxLines: 10,
@@ -374,6 +378,28 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             ),
             onChanged: (v) => setState(() {}),
           ),
+          // STAR-K Refinement Button
+          if (_historyController.text.length > 50) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => _openChatArchitect(),
+                icon: const Icon(Icons.psychology,
+                    color: AppColors.strategicGold, size: 16),
+                label: Text("REFINE WITH AI (STAR-K)",
+                    style: AppTypography.labelSmall
+                        .copyWith(color: AppColors.strategicGold)),
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.strategicGold.withOpacity(0.1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Divider(color: textColor.withOpacity(0.1)),
           const SizedBox(height: 10),
@@ -403,6 +429,22 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             ],
           )
         ],
+      ),
+    );
+  }
+
+  void _openChatArchitect() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ChatArchitectSheet(
+        originalText: _historyController.text,
+        onApply: (newText) {
+          setState(() {
+            _historyController.text = newText;
+          });
+        },
       ),
     );
   }

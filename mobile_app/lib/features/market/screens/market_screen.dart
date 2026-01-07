@@ -388,13 +388,30 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             top: 0,
             right: 0,
             child: Container(
-              width: 150,
-              height: 150,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.strategicGold.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(100),
-                    topRight: Radius.circular(30)),
+                color: AppColors.strategicGold,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppColors.strategicGold.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4))
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.auto_awesome,
+                      size: 14, color: AppColors.midnightNavy),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${_calculateMatchScore(card)}% MATCH",
+                    style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.midnightNavy,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10),
+                  ),
+                ],
               ),
             ),
           ),
@@ -597,5 +614,36 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
         child: Icon(icon, color: color, size: 28),
       ),
     );
+  }
+
+  double _calculateMatchScore(MarketCardModel card) {
+    // Mission 3: Simulation of Keyword Matching from Cloud Function
+    // In production, this would compare card.keywords with profile.targetKeywords
+    final mockTargetKeywords = [
+      "Leadership",
+      "Strategy",
+      "P&L",
+      "Agile",
+      "Python",
+      "Flutter",
+      "Management",
+      "Vision",
+      "Growth",
+      "Scale"
+    ];
+
+    if (card.description == null) return 0;
+
+    int matches = 0;
+    final descLower = card.description!.toLowerCase();
+
+    for (final k in mockTargetKeywords) {
+      if (descLower.contains(k.toLowerCase())) {
+        matches++;
+      }
+    }
+
+    // Heuristic: 5+ matches = 100%, each match = 20%
+    return (matches * 20.0).clamp(0.0, 100.0);
   }
 }

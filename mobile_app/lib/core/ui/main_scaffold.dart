@@ -75,7 +75,11 @@ class MainScaffold extends ConsumerWidget {
       ),
       body: child,
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+        padding: EdgeInsets.only(
+          bottom: 20 + MediaQuery.of(context).padding.bottom,
+          left: 16,
+          right: 16,
+        ),
         decoration: const BoxDecoration(
           color: Colors.transparent,
         ),
