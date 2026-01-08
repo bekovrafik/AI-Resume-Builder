@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart'; // Added
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/profile/providers/profile_provider.dart';
@@ -68,7 +69,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Identity Standard',
+        title: Text('Profile',
             style:
                 AppTypography.header3.copyWith(color: textColor, fontSize: 18)),
         backgroundColor: Colors.transparent,
@@ -146,18 +147,18 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         child: TextButton.icon(
                           onPressed: () async {
                             if (_roleController.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        "Please enter Target Archetype first.")),
+                              CustomSnackBar.show(
+                                context,
+                                message: "Please enter Target Role first.",
+                                type: SnackBarType.error,
                               );
                               return;
                             }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      "Generative AI Agent: Designing Avatar..."),
-                                  duration: Duration(seconds: 2)),
+                            CustomSnackBar.show(
+                              context,
+                              message:
+                                  "Generative AI Agent: Designing Avatar...",
+                              type: SnackBarType.info,
                             );
 
                             // Call Gemini 2.0
@@ -178,7 +179,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        'COMPREHENSIVE IDENTITY DATA',
+                        'PROFILE DATA',
                         style: AppTypography.labelSmall.copyWith(
                             color: AppColors.strategicGold, letterSpacing: 2),
                         textAlign: TextAlign.center,
@@ -199,7 +200,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             const SizedBox(height: 20),
                             _buildGlassTextField(
                               controller: _roleController,
-                              label: "TARGET ARCHETYPE",
+                              label: "TARGET ROLE",
                               icon: Icons.badge_outlined,
                               textColor: textColor,
                               hintColor: hintColor,
@@ -207,7 +208,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             const SizedBox(height: 20),
                             _buildGlassTextField(
                               controller: _emailController,
-                              label: "CONTACT SIGNAL",
+                              label: "CONTACT EMAIL",
                               icon: Icons.email_outlined,
                               textColor: textColor,
                               hintColor: hintColor,
@@ -215,7 +216,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             const SizedBox(height: 20),
                             _buildGlassTextField(
                               controller: _linkedInController,
-                              label: "LINKEDIN COORDINATES",
+                              label: "LINKEDIN PROFILE LINK",
                               icon: Icons.link,
                               textColor: textColor,
                               hintColor: hintColor,
@@ -236,7 +237,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           side: BorderSide(
                               color: AppColors.strategicGold.withOpacity(0.5)),
                         ),
-                        child: Text("SAVE IDENTITY STANDARD",
+                        child: Text("SAVE PROFILE",
                             style: AppTypography.labelSmall
                                 .copyWith(color: Colors.white)),
                       ),
@@ -320,12 +321,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       ref.read(profileProvider.notifier).saveProfile(newData);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Identity Standard Updated',
-              style: AppTypography.bodySmall.copyWith(color: Colors.white)),
-          backgroundColor: AppColors.midnightNavy,
-        ),
+      CustomSnackBar.show(
+        context,
+        message: 'Profile Updated',
+        type: SnackBarType.success,
       );
       context.pop();
     }
@@ -361,15 +360,19 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       try {
         await ref.read(authServiceProvider).deleteAccount();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Account Deleted successfully.")),
+          CustomSnackBar.show(
+            context,
+            message: "Account Deleted successfully.",
+            type: SnackBarType.success,
           );
           context.go('/');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Deletion Failed: $e")),
+          CustomSnackBar.show(
+            context,
+            message: "Deletion Failed: $e",
+            type: SnackBarType.error,
           );
         }
       }

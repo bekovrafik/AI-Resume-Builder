@@ -6,6 +6,7 @@ import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/features/builder/providers/resume_editor_provider.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/builder/widgets/xyz_auditor_widget.dart';
 import 'package:mobile_app/features/builder/widgets/chat_architect_sheet.dart';
 
@@ -40,15 +41,19 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   void _listenToState() {
     ref.listen(resumeEditorProvider, (previous, next) {
       if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error.toString())),
+        CustomSnackBar.show(
+          context,
+          message: next.error.toString(),
+          type: SnackBarType.error,
         );
         // No need to clear messages in AsyncValue pattern usually, but if we want to reset:
         // ref.read(resumeEditorProvider.notifier).clearMessages();
       }
       if (next.hasValue && next.value!.resultMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.value!.resultMessage!)),
+        CustomSnackBar.show(
+          context,
+          message: next.value!.resultMessage!,
+          type: SnackBarType.success,
         );
         ref.read(resumeEditorProvider.notifier).clearMessages();
       }
@@ -64,7 +69,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
 
   Future<void> _onImportTap() async {
     final importedText =
-        await ref.read(resumeEditorProvider.notifier).handleImportWithReturn();
+        await ref.read(resumeEditorProvider.notifier).handleImport();
     if (importedText != null && mounted) {
       setState(() {
         _historyController.text = importedText;

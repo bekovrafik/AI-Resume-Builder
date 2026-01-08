@@ -26,50 +26,8 @@ class ResumeEditorController
     return const ResumeEditorState();
   }
 
-  Future<String?> handleImport() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'txt'],
-      );
-
-      if (result != null && result.files.single.path != null) {
-        final path = result.files.single.path!;
-        String text = "";
-
-        if (path.endsWith('.pdf')) {
-          text = await ReadPdfText.getPDFtext(path);
-        } else if (path.endsWith('.txt')) {
-          final file = File(path);
-          text = await file.readAsString();
-        }
-
-        return const ResumeEditorState(
-            resultMessage: "Analysis Complete. Data Extracted.");
-      } else {
-        return const ResumeEditorState(); // Canceled, reset processing
-      }
-    });
-
-    if (state.hasValue &&
-        state.value!.resultMessage == "Analysis Complete. Data Extracted.") {
-      // Return text separately?
-      // AsyncNotifier isn't designed to return values from mutations easily *and* update state.
-      // We'll rely on the side-effect or return null and let the UI read the text from a separate provider if needed?
-      // For now, to keep API similar:
-      // We unfortunately can't return the text *from* this void/state-updating method cleanly if we are fully `guard`ing.
-      // So we will just return null here and let the UI handle the state change?
-      // Actually, checking original usage: `final importedText = await handleImport();`
-      // We need to return the text.
-      // So we can't just strictly use `state = await AsyncValue.guard(...)` for the *return* value if it's diff from state.
-      // We'll do a hybrid.
-    }
-    return null; // Refactor to just update state?
-  }
-
   // Rectified approach for handleImport to return value AND update state:
-  Future<String?> handleImportWithReturn() async {
+  Future<String?> handleImport() async {
     state = const AsyncLoading();
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -131,8 +89,8 @@ class ResumeEditorController
             data: resumeData,
           );
 
-      state = const AsyncData(
-          ResumeEditorState(resultMessage: "Blueprint Synthesized & Vaulted."));
+      state =
+          const AsyncData(ResumeEditorState(resultMessage: "Resume Saved."));
       return newResumeId;
     } catch (e, st) {
       state = AsyncError("Synthesis Error: $e", st);

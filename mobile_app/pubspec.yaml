@@ -1,7 +1,7 @@
 name: mobile_app
 description: "AI Resume Builder & CV Mobile Application"
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.5.4
@@ -26,6 +26,7 @@ dependencies:
   cloud_firestore: ^5.0.0
   cloud_functions: ^5.1.0
   google_generative_ai: ^0.4.6
+  google_sign_in: ^6.2.1
 
   # Monetization
   google_mobile_ads: ^5.1.0

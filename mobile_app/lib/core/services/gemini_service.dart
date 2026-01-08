@@ -13,14 +13,14 @@ class GeminiService {
 Resume Builder AI instruction: You are a professional Resume Writer and ATS Optimization Expert.
 You DO NOT just "write" a resume. You PERFORM A STRUCTURED TRANSFORMATION.
 
-=== THE 4-STEP SYNTHESIS PROCESS ===
+=== THE 4-STEP PROCESS ===
 
-1. THE INPUT VECTOR (The Raw Material)
+1. THE INPUT DATA (The Raw Material)
    - You will receive "Raw User Input" (history) and "Profile Data" (source of truth).
    - You will also receive a "Target Role" and "Job Description".
    - Your job is to TRANSLATE this raw data, not just format it.
 
-2. THE ARCHITECTURAL FORMULA (The Brain)
+2. THE CORE FORMULA (The Brain)
    - STRICT RULE: Every single experience bullet point MUST follow the Google XYZ Formula:
      "Accomplished [X] as measured by [Y], by doing [Z]"
    - [X]: What was achieved (Qualitative)
@@ -136,7 +136,7 @@ You DO NOT just "write" a resume. You PERFORM A STRUCTURED TRANSFORMATION.
 
   Future<Map<String, dynamic>> suggestMetrics(String history) async {
     final prompt = '''
-As a Lead Career Architect, perform a Narrative Audit on this work history. 
+As a Lead Career Coach, perform a Narrative Audit on this work history. 
 1. Identify 3-5 weak, qualitative statements.
 2. Provide high-impact XYZ rewrites with placeholder metrics.
 3. Infer 5-7 high-value Technical/Core skills.
@@ -335,10 +335,10 @@ Ensure the links are valid. If you can't find a direct link, use a plausible sea
     return _model.startChat(history: [
       Content.system(_architectSystemPrompt),
       Content.text(
-          "Hello. I am ready to act as your Executive Resume Architect. Please provide your current resume details or ask for specific refinements."),
+          "Hello. I am ready to act as your Executive Resume Coach. Please provide your current resume details or ask for specific refinements."),
       Content.model([
         TextPart(
-            "Understood. I am online and initialized as the Executive Resume Architect. I am ready to apply the XYZ formula, optimize for ATS, and refine your narrative for high-impact roles. How shall we begin?")
+            "Understood. I am online and initialized as your Executive Resume Coach. I am ready to apply the XYZ formula, optimize for ATS, and refine your narrative for high-impact roles. How shall we begin?")
       ])
     ]);
   }

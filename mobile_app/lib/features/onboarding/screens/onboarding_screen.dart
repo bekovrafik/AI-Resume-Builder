@@ -20,8 +20,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, dynamic>> _steps = [
     {
       "title": "THE AI STANDARD",
-      "content":
-          "Welcome to AI Resume Builder. We don't just build resumes; we architect institutional-grade career legacies using executive AI models.",
+      "description":
+          "Welcome to AI Resume Builder. We build professional career profiles using advanced AI models.",
       "icon": Icons.verified_user_outlined,
       "color": AppColors.strategicGold,
     },
@@ -41,8 +41,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
     {
       "title": "NARRATIVE POLISH",
-      "content":
-          "Your dashboard is interactive. Click any achievement to refine it, or chat with the Architect for real-time legacy synthesis.",
+      "description":
+          "Your dashboard is interactive. Click any achievement to refine it, or chat with the AI Assistant for real-time improvements.",
       "icon": Icons.diamond_outlined,
       "color": AppColors.strategicGold,
     }
@@ -68,6 +68,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine the content/description key based on the step
+    final String contentKey =
+        (_currentPage == 0 || _currentPage == 3) ? "description" : "content";
     final step = _steps[_currentPage];
 
     // Build Interaction Widget based on step
@@ -121,9 +124,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("XYZ BLUEPRINT",
+                    Text("AI RESUME",
                         style: AppTypography.labelSmall
-                            .copyWith(color: AppColors.strategicGold)),
+                            .copyWith(color: Colors.white54)),
                     const SizedBox(height: 4),
                     Text(
                         '"Spearheaded a new sales methodology that boosted quarterly revenue by 22% (\$450k)."',
@@ -254,7 +257,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // Content
                   Text(
-                    step['content'].toString(),
+                    step[contentKey].toString(),
                     style: AppTypography.bodyMedium
                         .copyWith(color: Colors.white70),
                     textAlign: TextAlign.center,
@@ -305,8 +308,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       child: Text(
                         _currentPage == _steps.length - 1
-                            ? "BEGIN ARCHITECTURE"
-                            : "NEXT MILESTONE",
+                            ? "START BUILDING"
+                            : "NEXT",
                         style: AppTypography.labelLarge
                             .copyWith(color: Colors.black),
                       ),

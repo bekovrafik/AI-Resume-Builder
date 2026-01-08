@@ -5,6 +5,7 @@ import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/resume/providers/resume_provider.dart';
 
 class InterviewPrepScreen extends ConsumerStatefulWidget {
@@ -24,8 +25,10 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
     final resumes = resumesAsync.value;
 
     if (resumes == null || resumes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No resume found in Vault to analyze.")),
+      CustomSnackBar.show(
+        context,
+        message: "No resume found in Vault to analyze.",
+        type: SnackBarType.error,
       );
       return;
     }
@@ -45,8 +48,10 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Strategy Error: $e")),
+        CustomSnackBar.show(
+          context,
+          message: "Strategy Error: $e",
+          type: SnackBarType.error,
         );
       }
     } finally {
@@ -154,7 +159,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
             const CircularProgressIndicator(color: AppColors.strategicGold),
             const SizedBox(height: 24),
             Text(
-              "ARCHITECTING SCENARIOS...",
+              "PREPARING SCENARIOS...",
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.strategicGold,
                 letterSpacing: 2.0,

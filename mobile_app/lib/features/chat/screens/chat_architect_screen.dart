@@ -8,6 +8,7 @@ import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 
 import 'package:mobile_app/core/services/gemini_service.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 
 // Simple provider for chat state (keeping original logic)
 final chatMessagesProvider = StateProvider<List<Content>>((ref) => []);
@@ -92,8 +93,11 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        CustomSnackBar.show(
+          context,
+          message: 'Error: $e',
+          type: SnackBarType.error,
+        );
       }
     } finally {
       if (mounted) {
@@ -153,7 +157,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("ARCHITECT",
+                      Text("AI ASSISTANT",
                           style: AppTypography.labelSmall
                               .copyWith(color: Colors.white)),
                       Row(
@@ -273,7 +277,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  isUser ? "SENT" : "ARCHITECT",
+                                  isUser ? "SENT" : "AI",
                                   style: AppTypography.labelSmall.copyWith(
                                     fontSize: 8,
                                     color: isUser

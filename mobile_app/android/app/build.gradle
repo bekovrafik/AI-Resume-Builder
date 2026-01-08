@@ -54,9 +54,14 @@ android {
             // Signing with the release keys
             signingConfig signingConfigs.release
             // R8/ProGuard Configuration
-            minifyEnabled false 
-            shrinkResources false
-            // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true 
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            
+            // Native Debug Symbols
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
         }
     }
 }

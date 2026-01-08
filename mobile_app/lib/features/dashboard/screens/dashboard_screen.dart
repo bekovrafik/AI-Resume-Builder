@@ -7,6 +7,7 @@ import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/profile/providers/profile_provider.dart';
 import 'package:mobile_app/shared/widgets/banner_ad_widget.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/auth/services/auth_service.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -18,7 +19,7 @@ class DashboardScreen extends ConsumerWidget {
     final profileData = profileAsync.value;
     final fullName = profileData?.fullName?.isNotEmpty == true
         ? profileData!.fullName
-        : 'Career Architect';
+        : 'Career AI';
     final targetRole = profileData?.targetRole?.isNotEmpty == true
         ? profileData!.targetRole
         : 'Identity Not Synced';
@@ -140,7 +141,7 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 32),
 
               // Settings Section: Architecture
-              _buildSectionHeader("ARCHITECTURE CONTROLS", isDark),
+              _buildSectionHeader("AI CONTROLS", isDark),
               const SizedBox(height: 16),
               GlassContainer(
                 padding: EdgeInsets.zero,
@@ -174,9 +175,9 @@ class DashboardScreen extends ConsumerWidget {
                         color: isDark ? Colors.white12 : Colors.black12),
                     _buildSettingRow(
                       context,
-                      title: "Chat Architect",
-                      subtitle: "Synthesize with AI Architect",
-                      icon: Icons.chat_bubble_outline,
+                      title: "Chat Assistant",
+                      subtitle: "Chat with AI Assistant",
+                      icon: Icons.record_voice_over,
                       iconColor: AppColors.strategicGold,
                       onTap: () => context.push('/chat'),
                       isLast: true,
@@ -201,9 +202,10 @@ class DashboardScreen extends ConsumerWidget {
                       subtitle: "Inquiry Dispatch",
                       icon: Icons.support_agent,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Concierge Support Coming Soon")),
+                        CustomSnackBar.show(
+                          context,
+                          message: "Concierge Support Coming Soon",
+                          type: SnackBarType.info,
                         );
                       },
                       isFirst: true,
@@ -219,10 +221,10 @@ class DashboardScreen extends ConsumerWidget {
                       subtitle: "Institutional Privacy Policy",
                       icon: Icons.policy_outlined,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  "Privacy Policy: Standard GDPR Compliance")),
+                        CustomSnackBar.show(
+                          context,
+                          message: "Privacy Policy: Standard GDPR Compliance",
+                          type: SnackBarType.info,
                         );
                       },
                       defaultIconColor: iconColor,
@@ -258,7 +260,7 @@ class DashboardScreen extends ConsumerWidget {
                         style: AppTypography.labelSmall
                             .copyWith(color: Colors.grey, fontSize: 8)),
                     const SizedBox(height: 4),
-                    Text("End-to-End Career Architecture",
+                    Text("Comprehensive Career Building",
                         style: AppTypography.labelSmall
                             .copyWith(color: Colors.grey[400], fontSize: 7)),
                   ],

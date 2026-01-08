@@ -72,7 +72,7 @@ class VaultScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 32, vertical: 16),
                               ),
-                              child: Text("INITIATE BLUEPRINT",
+                              child: Text("CREATE RESUME",
                                   style: AppTypography.labelSmall.copyWith(
                                       color: AppColors.midnightNavy,
                                       fontWeight: FontWeight.bold)),
@@ -115,7 +115,7 @@ class VaultScreen extends ConsumerWidget {
                                       children: [
                                         Text(
                                             resume.data.targetRole ??
-                                                'Untitled Blueprint',
+                                                'Untitled Resume',
                                             style: AppTypography.header3
                                                 .copyWith(
                                                     color: Colors.white,

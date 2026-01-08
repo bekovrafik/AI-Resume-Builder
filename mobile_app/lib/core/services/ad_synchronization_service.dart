@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mobile_app/core/utils/ad_helper.dart';
@@ -27,21 +28,24 @@ class AdSynchronizationService {
   }
 
   // --- App Open Ad (Warm Start) ---
-  void loadAppOpenAd() {
+  Future<void> loadAppOpenAd() {
+    final completer = Completer<void>();
     AppOpenAd.load(
-      adUnitId: AdHelper.appOpenAdUnitId, // Need to add to AdHelper
+      adUnitId: AdHelper.appOpenAdUnitId,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
           _appOpenAd = ad;
           _isAppOpenAdAvailable = true;
+          if (!completer.isCompleted) completer.complete();
         },
         onAdFailedToLoad: (error) {
           _isAppOpenAdAvailable = false;
-          // Retry logic could go here
+          if (!completer.isCompleted) completer.complete();
         },
       ),
     );
+    return completer.future;
   }
 
   void showAppOpenAdIfAvailable() {

@@ -4,6 +4,7 @@ import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/profile/providers/profile_provider.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/market/services/market_service.dart';
 import 'package:mobile_app/features/market/models/market_card_model.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
@@ -176,14 +177,12 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
       }
 
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(card.type == MarketCardType.job
-              ? "Opening Job Application..."
-              : "Opening Offer..."),
-          duration: const Duration(milliseconds: 1000),
-          backgroundColor: AppColors.strategicGold,
-        ),
+      CustomSnackBar.show(
+        context,
+        message: card.type == MarketCardType.job
+            ? "Opening Job Application..."
+            : "Opening Offer...",
+        type: SnackBarType.success,
       );
     }
     return true;

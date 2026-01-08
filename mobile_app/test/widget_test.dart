@@ -15,7 +15,7 @@ class MockAdSynchronizationService extends AdSynchronizationService {
   // OR we override logic to do nothing.
 
   @override
-  void loadAppOpenAd() {}
+  Future<void> loadAppOpenAd() async {}
   @override
   void loadRewardedInterstitialAd() {}
   @override

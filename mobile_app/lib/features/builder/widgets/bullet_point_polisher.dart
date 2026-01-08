@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/premium/providers/polish_token_provider.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 
 class BulletPointPolisher extends ConsumerStatefulWidget {
   final String initialText;
@@ -54,8 +55,10 @@ class _BulletPointPolisherState extends ConsumerState<BulletPointPolisher> {
               Navigator.pop(context);
               // Free refill since ads are removed
               ref.read(polishTokenProvider.notifier).addCredits(5);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Refilled 5 Credits (Free)")),
+              CustomSnackBar.show(
+                context,
+                message: "Refilled 5 Credits (Free)",
+                type: SnackBarType.success,
               );
             },
             child: const Text("Refill Credits"),

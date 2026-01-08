@@ -11,6 +11,7 @@ import 'firebase_options.dart';
 import 'core/services/app_lifecycle_reactor.dart';
 import 'core/services/ad_synchronization_service.dart';
 import 'core/providers/theme_provider.dart';
+import 'core/ui/app_bootstrap.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +56,7 @@ void main() async {
 
   runApp(UncontrolledProviderScope(
     container: appContainer,
-    child: const AiResumeBuilderApp(),
+    child: const AppBootstrap(child: AiResumeBuilderApp()),
   ));
 }
 

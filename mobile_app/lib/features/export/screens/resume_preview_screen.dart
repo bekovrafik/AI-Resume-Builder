@@ -5,6 +5,7 @@ import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/export/services/pdf_generator_service.dart';
+import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/resume/models/resume_model.dart';
 import 'package:printing/printing.dart';
 import 'package:mobile_app/features/resume/providers/resume_provider.dart';
@@ -127,8 +128,11 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
         },
         onError: () {
           // Ad failed, maybe let them through as a fallback or show error
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Unable to load ad. Please try again.")));
+          CustomSnackBar.show(
+            context,
+            message: "Unable to load ad. Please try again.",
+            type: SnackBarType.error,
+          );
         },
       );
     }
@@ -170,7 +174,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
       return Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
-          title: Text('Blueprint Preview', style: TextStyle(color: textColor)),
+          title: Text('Resume Preview', style: TextStyle(color: textColor)),
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: const BackButton(color: AppColors.strategicGold),
@@ -186,7 +190,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
                       size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
-                    "AWAITING BLUEPRINT SYNTHESIS",
+                    "GENERATING RESUME...",
                     style: AppTypography.labelSmall
                         .copyWith(color: Colors.grey, letterSpacing: 3.0),
                     textAlign: TextAlign.center,
@@ -202,7 +206,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Blueprint Preview', style: TextStyle(color: textColor)),
+        title: Text('Resume Preview', style: TextStyle(color: textColor)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: AppColors.strategicGold),
