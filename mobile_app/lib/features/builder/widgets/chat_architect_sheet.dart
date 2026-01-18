@@ -122,7 +122,7 @@ class _ChatArchitectSheetState extends ConsumerState<ChatArchitectSheet> {
               const Spacer(),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.close, color: textColor.withOpacity(0.5)),
+                icon: Icon(Icons.close, color: textColor.withValues(alpha: 0.5)),
               )
             ],
           ),
@@ -201,9 +201,9 @@ class _ChatArchitectSheetState extends ConsumerState<ChatArchitectSheet> {
                             decoration: InputDecoration(
                               hintText: "Ex: 30%, \$1M, Python/React...",
                               hintStyle:
-                                  TextStyle(color: textColor.withOpacity(0.3)),
+                                  TextStyle(color: textColor.withValues(alpha: 0.3)),
                               filled: true,
-                              fillColor: textColor.withOpacity(0.05),
+                              fillColor: textColor.withValues(alpha: 0.05),
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none),

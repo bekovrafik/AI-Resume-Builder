@@ -48,24 +48,48 @@ class AdSynchronizationService {
     return completer.future;
   }
 
+  bool _hasShownAd = false;
+  // bool _isShowingAd = false; // logic simplified for single-show
+  // DateTime? _lastAdShowTime; // Removed per user request
+
   void showAppOpenAdIfAvailable() {
-    if (_isAppOpenAdAvailable && _appOpenAd != null) {
-      _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          loadAppOpenAd(); // Pre-load next
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-          loadAppOpenAd();
-        },
-      );
-      _appOpenAd!.show();
-      _appOpenAd = null;
-      _isAppOpenAdAvailable = false;
-    } else {
+    // 1. One-time only check
+    if (_hasShownAd) return;
+
+    // 2. Check if ad is already showing (safety)
+    // if (_isShowingAd) return;
+
+    // 3. Check if ad is available
+    if (!_isAppOpenAdAvailable || _appOpenAd == null) {
       loadAppOpenAd();
+      return;
     }
+
+    // _isShowingAd = true;
+    _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        // _isShowingAd = false;
+        ad.dispose();
+        // Do NOT load next ad since we only show once
+        _appOpenAd = null;
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        // _isShowingAd = false;
+        ad.dispose();
+        // If failed, maybe we allow retry?
+        // For 'strictly once', maybe we don't retry if it failed to *show*?
+        // usually failing to show means we should try again or just give up.
+        // Let's assume we allow retry if it completely failed to present content?
+        // But user said "just once". I'll reset _hasShownAd to false if it failed?
+        // No, let's keep it simple. If it tries to show, we count it.
+        loadAppOpenAd();
+      },
+    );
+
+    _appOpenAd!.show();
+    _appOpenAd = null;
+    _isAppOpenAdAvailable = false;
+    _hasShownAd = true;
   }
 
   // --- Rewarded Ad Removed per configuration ---

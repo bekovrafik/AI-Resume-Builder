@@ -107,7 +107,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   color: isDark
                                       ? Colors.white10
                                       : AppColors.midnightNavy
-                                          .withOpacity(0.05),
+                                          .withValues(alpha: 0.05),
                                   border: Border.all(
                                       color: AppColors.strategicGold, width: 2),
                                   image: _pickedImagePath != null
@@ -235,7 +235,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                               borderRadius: BorderRadius.circular(16)),
                           elevation: 0,
                           side: BorderSide(
-                              color: AppColors.strategicGold.withOpacity(0.5)),
+                              color: AppColors.strategicGold.withValues(alpha: 0.5)),
                         ),
                         child: Text("SAVE PROFILE",
                             style: AppTypography.labelSmall
@@ -283,16 +283,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       children: [
         Text(label,
             style: AppTypography.labelSmall.copyWith(
-                color: textColor.withOpacity(0.7),
+                color: textColor.withValues(alpha: 0.7),
                 fontSize: 9,
                 fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: textColor.withOpacity(0.05),
+            color: textColor.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: textColor.withOpacity(0.1)),
+            border: Border.all(color: textColor.withValues(alpha: 0.1)),
           ),
           child: TextFormField(
             controller: controller,

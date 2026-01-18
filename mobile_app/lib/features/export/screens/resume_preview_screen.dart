@@ -81,7 +81,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                  color: AppColors.strategicGold.withOpacity(0.1),
+                  color: AppColors.strategicGold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -277,7 +277,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
                                   borderRadius: BorderRadius.circular(16)),
                               elevation: 8,
                               shadowColor:
-                                  AppColors.strategicGold.withOpacity(0.5)),
+                                  AppColors.strategicGold.withValues(alpha: 0.5)),
                           icon: const Icon(Icons.download_rounded),
                           label: Text("EXPORT PDF",
                               style: AppTypography.labelSmall
@@ -313,7 +313,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
             border: Border.all(
                 color: isSelected
                     ? AppColors.strategicGold
-                    : Colors.grey.withOpacity(0.3),
+                    : Colors.grey.withValues(alpha: 0.3),
                 width: 2)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

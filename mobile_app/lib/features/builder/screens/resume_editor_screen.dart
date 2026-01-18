@@ -99,10 +99,10 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : AppColors.midnightNavy;
     final subTextColor =
-        isDark ? Colors.white54 : AppColors.midnightNavy.withOpacity(0.6);
+        isDark ? Colors.white54 : AppColors.midnightNavy.withValues(alpha: 0.6);
     final glassColor = isDark
-        ? Colors.white.withOpacity(0.05)
-        : AppColors.midnightNavy.withOpacity(0.05);
+        ? Colors.white.withValues(alpha: 0.05)
+        : AppColors.midnightNavy.withValues(alpha: 0.05);
 
     // 1. Header with Progress
     Widget buildHeader() {
@@ -244,7 +244,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20)),
                           side: BorderSide(
-                              color: AppColors.strategicGold.withOpacity(0.5)),
+                              color: AppColors.strategicGold.withValues(alpha: 0.5)),
                           elevation: 10,
                         ),
                         child: isProcessing
@@ -305,7 +305,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
               style: AppTypography.labelSmall.copyWith(
                   color: isActive
                       ? (isDark ? AppColors.midnightNavy : Colors.white)
-                      : textColor.withOpacity(0.5),
+                      : textColor.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w900)),
         ),
       ),
@@ -327,7 +327,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                        color: AppColors.strategicGold.withOpacity(0.1),
+                        color: AppColors.strategicGold.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10)),
                     child: const Icon(Icons.description_outlined,
                         color: AppColors.strategicGold, size: 20),
@@ -352,8 +352,8 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isProcessing ? textColor.withOpacity(0.1) : null,
-                    border: Border.all(color: textColor.withOpacity(0.1)),
+                    color: isProcessing ? textColor.withValues(alpha: 0.1) : null,
+                    border: Border.all(color: textColor.withValues(alpha: 0.1)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: isProcessing
@@ -378,7 +378,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             decoration: InputDecoration(
               hintText:
                   "Ex: Led engineering team at Tech Corp. Launched mobile app reaching 1M users...",
-              hintStyle: TextStyle(color: subTextColor.withOpacity(0.4)),
+              hintStyle: TextStyle(color: subTextColor.withValues(alpha: 0.4)),
               border: InputBorder.none,
             ),
             onChanged: (v) => setState(() {}),
@@ -396,7 +396,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                     style: AppTypography.labelSmall
                         .copyWith(color: AppColors.strategicGold)),
                 style: TextButton.styleFrom(
-                  backgroundColor: AppColors.strategicGold.withOpacity(0.1),
+                  backgroundColor: AppColors.strategicGold.withValues(alpha: 0.1),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
@@ -406,7 +406,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             ),
           ],
           const SizedBox(height: 20),
-          Divider(color: textColor.withOpacity(0.1)),
+          Divider(color: textColor.withValues(alpha: 0.1)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -465,7 +465,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                    color: AppColors.strategicGold.withOpacity(0.1),
+                    color: AppColors.strategicGold.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10)),
                 child: const Icon(Icons.gps_fixed,
                     color: AppColors.strategicGold, size: 20),
@@ -492,7 +492,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             decoration: InputDecoration(
               hintText:
                   "Paste the Job Description or key requirements here to enable precise ATS alignment...",
-              hintStyle: TextStyle(color: subTextColor.withOpacity(0.4)),
+              hintStyle: TextStyle(color: subTextColor.withValues(alpha: 0.4)),
               border: InputBorder.none,
             ),
             onChanged: (v) => setState(() {}),
@@ -507,8 +507,8 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withOpacity(0.05)
-            : AppColors.midnightNavy.withOpacity(0.05),
+            ? Colors.white.withValues(alpha: 0.05)
+            : AppColors.midnightNavy.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
       ),
@@ -523,7 +523,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
               style: TextStyle(
                   color: isDark
                       ? Colors.white54
-                      : AppColors.midnightNavy.withOpacity(0.6),
+                      : AppColors.midnightNavy.withValues(alpha: 0.6),
                   fontSize: 10,
                   height: 1.4)),
         ],

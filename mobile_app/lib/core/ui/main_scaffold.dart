@@ -61,8 +61,8 @@ class MainScaffold extends ConsumerWidget {
         ),
         centerTitle: false,
         backgroundColor: isDark
-            ? AppColors.midnightNavy.withOpacity(0.8)
-            : Colors.white.withOpacity(0.8),
+            ? AppColors.midnightNavy.withValues(alpha: 0.8)
+            : Colors.white.withValues(alpha: 0.8),
         elevation: 0,
         actions: [
           IconButton(
@@ -92,8 +92,8 @@ class MainScaffold extends ConsumerWidget {
               : 0.8, // More opaque in light mode to stand out against gradient
           border: Border.all(
             color: isDark
-                ? Colors.white.withOpacity(0.1)
-                : AppColors.midnightNavy.withOpacity(0.1),
+                ? Colors.white.withValues(alpha: 0.1)
+                : AppColors.midnightNavy.withValues(alpha: 0.1),
             width: 1,
           ),
           child: Row(
@@ -121,7 +121,7 @@ class MainScaffold extends ConsumerWidget {
     final selectedColor =
         isDark ? AppColors.strategicGold : AppColors.midnightNavy;
     final unselectedColor =
-        isDark ? Colors.white54 : AppColors.midnightNavy.withOpacity(0.5);
+        isDark ? Colors.white54 : AppColors.midnightNavy.withValues(alpha: 0.5);
     final color = isSelected ? selectedColor : unselectedColor;
 
     return InkWell(

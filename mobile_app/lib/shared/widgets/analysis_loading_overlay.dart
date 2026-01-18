@@ -16,7 +16,7 @@ class _AnalysisLoadingOverlayState extends State<AnalysisLoadingOverlay> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.midnightNavy.withOpacity(0.95),
+      color: AppColors.midnightNavy.withValues(alpha: 0.95),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

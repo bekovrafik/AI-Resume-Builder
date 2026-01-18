@@ -6,7 +6,7 @@ import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/features/profile/providers/profile_provider.dart';
-import 'package:mobile_app/shared/widgets/banner_ad_widget.dart';
+
 import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/auth/services/auth_service.dart';
 
@@ -56,9 +56,10 @@ class DashboardScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                         color: isDark
                             ? Colors.white10
-                            : AppColors.midnightNavy.withOpacity(0.1),
+                            : AppColors.midnightNavy.withValues(alpha: 0.1),
                         border: Border.all(
-                            color: AppColors.strategicGold.withOpacity(0.3),
+                            color:
+                                AppColors.strategicGold.withValues(alpha: 0.3),
                             width: 2),
                       ),
                       child: profileData?.avatarUrl != null
@@ -250,9 +251,6 @@ class DashboardScreen extends ConsumerWidget {
                   ])),
 
               const SizedBox(height: 24),
-              const BannerAdWidget(),
-              const SizedBox(height: 24),
-
               Center(
                 child: Column(
                   children: [
@@ -316,7 +314,7 @@ class DashboardScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: effectiveIconColor.withOpacity(0.1),
+                color: effectiveIconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: effectiveIconColor, size: 20),

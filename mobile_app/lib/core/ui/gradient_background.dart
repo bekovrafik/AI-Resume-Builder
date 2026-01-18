@@ -39,8 +39,8 @@ class GradientBackground extends StatelessWidget {
               left: -50,
               child: AnimatedOrb(
                 color: isDark
-                    ? const Color(0xFFCA8A04).withOpacity(0.15) // Darker Gold
-                    : const Color(0xFFEAB308).withOpacity(0.1), // Gold
+                    ? const Color(0xFFCA8A04).withValues(alpha: 0.15) // Darker Gold
+                    : const Color(0xFFEAB308).withValues(alpha: 0.1), // Gold
                 size: 300,
                 offset: const Offset(0.1, 0.1), // Small movement
                 duration: const Duration(seconds: 6),
@@ -52,8 +52,8 @@ class GradientBackground extends StatelessWidget {
               right: -50,
               child: AnimatedOrb(
                 color: isDark
-                    ? const Color(0xFFCA8A04).withOpacity(0.1)
-                    : const Color(0xFFEAB308).withOpacity(0.15),
+                    ? const Color(0xFFCA8A04).withValues(alpha: 0.1)
+                    : const Color(0xFFEAB308).withValues(alpha: 0.15),
                 size: 350,
                 offset: const Offset(-0.1, -0.1),
                 duration: const Duration(seconds: 8),

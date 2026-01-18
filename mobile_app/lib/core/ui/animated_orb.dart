@@ -55,7 +55,7 @@ class _AnimatedOrbState extends State<AnimatedOrb>
         height: widget.size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: widget.color.withOpacity(0.4),
+          color: widget.color.withValues(alpha: 0.4),
           boxShadow: [
             BoxShadow(
               color: widget.color,
