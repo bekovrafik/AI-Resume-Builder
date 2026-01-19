@@ -113,9 +113,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               transform:
                   Matrix4.translationValues(0, _isInteracted ? 0 : 20, 0),
               decoration: BoxDecoration(
-                color: AppColors.strategicGold.withValues(alpha: 0.05),
+                color: AppColors.strategicGold.withOpacity(0.05),
                 border:
-                    Border.all(color: AppColors.strategicGold.withValues(alpha: 0.3)),
+                    Border.all(color: AppColors.strategicGold.withOpacity(0.3)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: AnimatedOpacity(
@@ -158,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white10),
-            color: Colors.white.withValues(alpha: 0.05),
+            color: Colors.white.withOpacity(0.05),
           ),
           child: Stack(
             children: [
@@ -180,10 +180,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.strategicGold.withValues(alpha: 0.1),
+                                color: AppColors.strategicGold.withOpacity(0.1),
                                 border: Border.all(
                                     color: AppColors.strategicGold
-                                        .withValues(alpha: 0.3)),
+                                        .withOpacity(0.3)),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(kw,

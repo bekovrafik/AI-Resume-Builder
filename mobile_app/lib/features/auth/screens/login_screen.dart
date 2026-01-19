@@ -158,9 +158,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               margin: const EdgeInsets.only(bottom: 20),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.red.withValues(alpha: 0.1),
+                                color: Colors.red.withOpacity(0.1),
                                 border: Border.all(
-                                    color: Colors.red.withValues(alpha: 0.3)),
+                                    color: Colors.red.withOpacity(0.3)),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -296,7 +296,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Colors.white.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white10),
           ),
@@ -336,10 +336,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          backgroundColor: Colors.white.withValues(alpha: 0.08),
+          backgroundColor: Colors.white.withOpacity(0.08),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          side: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
       ),
     );

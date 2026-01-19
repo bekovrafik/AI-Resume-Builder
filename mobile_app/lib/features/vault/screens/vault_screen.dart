@@ -50,7 +50,7 @@ class VaultScreen extends ConsumerWidget {
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
+                                color: Colors.white.withOpacity(0.05),
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white10),
                               ),
@@ -100,7 +100,7 @@ class VaultScreen extends ConsumerWidget {
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
                                       color: AppColors.strategicGold
-                                          .withValues(alpha: 0.1),
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(

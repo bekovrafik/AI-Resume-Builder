@@ -61,7 +61,7 @@ class XyzAuditorWidget extends ConsumerWidget {
                     Expanded(
                         child: Container(
                             height: 1,
-                            color: AppColors.strategicGold.withValues(alpha: 0.2))),
+                            color: AppColors.strategicGold.withOpacity(0.2))),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text("NARRATIVE AUDIT RESULTS",
@@ -71,7 +71,7 @@ class XyzAuditorWidget extends ConsumerWidget {
                     Expanded(
                         child: Container(
                             height: 1,
-                            color: AppColors.strategicGold.withValues(alpha: 0.2))),
+                            color: AppColors.strategicGold.withOpacity(0.2))),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -177,11 +177,11 @@ class XyzAuditorWidget extends ConsumerWidget {
                                       horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: AppColors.strategicGold
-                                        .withValues(alpha: 0.1),
+                                        .withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
                                         color: AppColors.strategicGold
-                                            .withValues(alpha: 0.3)),
+                                            .withOpacity(0.3)),
                                   ),
                                   child: Text(s,
                                       style: AppTypography.labelSmall.copyWith(
