@@ -20,9 +20,9 @@ class GradientBackground extends StatelessWidget {
     final bgColor =
         isDark ? const Color(0xFF073b4c) : Colors.white; // React 'midnightNavy'
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      body: Stack(
+    return Material(
+      color: bgColor,
+      child: Stack(
         children: [
           // Background Color/Gradient
           Positioned.fill(

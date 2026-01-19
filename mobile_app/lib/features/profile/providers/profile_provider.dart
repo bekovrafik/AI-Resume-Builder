@@ -21,7 +21,8 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ResumeData>> {
 
   Future<void> loadProfile() async {
     try {
-      final profile = await _isarService.isar.resumeIterations
+      final isar = await _isarService.isar;
+      final profile = await isar.resumeIterations
           .filter()
           .resumeIdEqualTo('MASTER_PROFILE')
           .findFirst();
@@ -36,7 +37,8 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ResumeData>> {
     // Optimistic update or wait? Let's wait.
     // state = const AsyncValue.loading(); // preserve current data if possible or loading
     try {
-      final existing = await _isarService.isar.resumeIterations
+      final isar = await _isarService.isar;
+      final existing = await isar.resumeIterations
           .filter()
           .resumeIdEqualTo('MASTER_PROFILE')
           .findFirst();
@@ -48,8 +50,8 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ResumeData>> {
 
       iteration.data = data;
 
-      await _isarService.isar.writeTxn(() async {
-        await _isarService.isar.resumeIterations.put(iteration);
+      await isar.writeTxn(() async {
+        await isar.resumeIterations.put(iteration);
       });
 
       state = AsyncValue.data(data);

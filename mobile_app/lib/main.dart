@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/isar_service.dart';
 import 'core/app_router.dart';
@@ -14,38 +15,62 @@ import 'core/providers/theme_provider.dart';
 import 'core/ui/app_bootstrap.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // 1. Initialize Firebase first as it's often needed for other services
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+  }
 
-  await dotenv.load(fileName: ".env");
+  // 2. Load .env
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('.env loading failed: $e');
+  }
 
-  await AdHelper.initAds();
-
+  // 3. Initialize Ads and Isar
   final isarService = IsarService();
-  await isarService.init();
 
-  // Set System UI Overlay Style
+  final isarInit = isarService.init().catchError((e) {
+    debugPrint('Isar initialization failed: $e');
+  });
+
+  final adsInit = AdHelper.initAds().catchError((e) {
+    debugPrint('Ads initialization failed: $e');
+  });
+
+  // 4. Set System UI Overlay Style
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    systemNavigationBarColor: Colors.transparent, // Fix for "black screen"
+    systemNavigationBarColor: Colors.transparent,
     systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness
-        .light, // Or dynamic based on theme, but usually best to start with one
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
-  await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge); // Enforce edge-to-edge checks
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  // Preload Theme
-  final container = ProviderContainer();
-  final initialTheme = await container.read(themeInitializationProvider.future);
+  // 5. Preload Theme with a TIMEOUT
+  ThemeMode initialTheme = ThemeMode.dark;
+  try {
+    final container = ProviderContainer();
+    initialTheme = await container
+        .read(themeInitializationProvider.future)
+        .timeout(const Duration(seconds: 2), onTimeout: () => ThemeMode.dark);
+    container.dispose();
+  } catch (e) {
+    debugPrint('Theme loading failed: $e');
+  }
 
-  // Re-create container WITH overrides to fix dependency issues
-  // We dispose the temporary one used for reading 'themeInitializationProvider' if we want,
-  // but it's cleaner to just create a new one with overrides.
-  container.dispose();
+  // Wait for critical services with a safety net
+  await Future.wait([
+    isarInit,
+    adsInit,
+  ]).timeout(const Duration(seconds: 5), onTimeout: () => []);
 
   final appContainer = ProviderContainer(
     overrides: [
@@ -58,6 +83,9 @@ void main() async {
     container: appContainer,
     child: const AppBootstrap(child: AiResumeBuilderApp()),
   ));
+
+  // Explicitly remove splash after rendering starts
+  FlutterNativeSplash.remove();
 }
 
 class AiResumeBuilderApp extends ConsumerStatefulWidget {

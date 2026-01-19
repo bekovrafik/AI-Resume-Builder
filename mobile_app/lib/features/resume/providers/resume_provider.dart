@@ -24,7 +24,8 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
 
   Future<void> loadResumes() async {
     try {
-      final resumes = await _isarService.isar.resumeIterations
+      final isar = await _isarService.isar;
+      final resumes = await isar.resumeIterations
           .filter()
           .not()
           .resumeIdEqualTo('MASTER_PROFILE')
@@ -39,14 +40,15 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
 
   Future<String> createResume({String? theme, ResumeData? data}) async {
     try {
+      final isar = await _isarService.isar;
       final newResume = ResumeIteration()
         ..resumeId = const Uuid().v4()
         ..createdAt = DateTime.now()
         ..theme = theme ?? 'Executive'
         ..data = data ?? (ResumeData()..targetRole = 'New Role');
 
-      await _isarService.isar.writeTxn(() async {
-        await _isarService.isar.resumeIterations.put(newResume);
+      await isar.writeTxn(() async {
+        await isar.resumeIterations.put(newResume);
       });
 
       // Sync to Cloud (Fire & Forget)
@@ -62,8 +64,9 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
 
   Future<void> deleteResume(int id) async {
     try {
-      await _isarService.isar.writeTxn(() async {
-        await _isarService.isar.resumeIterations.delete(id);
+      final isar = await _isarService.isar;
+      await isar.writeTxn(() async {
+        await isar.resumeIterations.delete(id);
       });
       await loadResumes();
     } catch (e, st) {
