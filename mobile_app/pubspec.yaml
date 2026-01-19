@@ -1,7 +1,7 @@
 name: mobile_app
 description: "AI Resume Builder & CV Mobile Application"
 publish_to: 'none'
-version: 1.0.0+6
+version: 1.0.0+7
 
 environment:
   sdk: ^3.5.4

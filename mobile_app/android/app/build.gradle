@@ -35,9 +35,18 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdkVersion 23
         targetSdk 36
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode 7
+        versionName "1.0.0"
         multiDexEnabled true
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-Wl,-z,common-page-size=16384 -Wl,-z,max-page-size=16384"
+            }
+            ndkBuild {
+                arguments "APP_LDFLAGS+=-Wl,-z,common-page-size=16384 -Wl,-z,max-page-size=16384"
+            }
+        }
     }
 
     signingConfigs {
@@ -62,6 +71,12 @@ android {
             ndk {
                 debugSymbolLevel 'FULL'
             }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 }

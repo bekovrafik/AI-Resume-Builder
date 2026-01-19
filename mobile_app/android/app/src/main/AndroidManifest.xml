@@ -2,7 +2,7 @@
     <application
         android:label="AI Resume Builder"
         android:name="${applicationName}"
-        android:extractNativeLibs="true"
+        android:extractNativeLibs="false"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
