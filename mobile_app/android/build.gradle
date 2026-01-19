@@ -28,6 +28,25 @@ subprojects {
                         namespace = project.group
                     }
                     compileSdkVersion 35
+                    
+                    // Enforce 16KB alignment for plugins with native code using official flags
+                    defaultConfig {
+                        externalNativeBuild {
+                            cmake {
+                                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                            }
+                            ndkBuild {
+                                arguments "APP_SUPPORT_FLEXIBLE_PAGE_SIZES:=true",
+                                          "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
+                            }
+                        }
+                    }
+                    // Enforce uncompressed native libs for plugins
+                    packaging {
+                        jniLibs {
+                            useLegacyPackaging = false
+                        }
+                    }
                 }
             }
         }

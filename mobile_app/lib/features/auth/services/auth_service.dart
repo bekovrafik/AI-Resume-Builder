@@ -16,15 +16,6 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
-  Future<void> signInWithEmailPassword(String email, String password) async {
-    await _auth.signInWithEmailAndPassword(email: email, password: password);
-  }
-
-  Future<void> signUpWithEmailPassword(String email, String password) async {
-    await _auth.createUserWithEmailAndPassword(
-        email: email, password: password);
-  }
-
   Future<void> signInAnonymously() async {
     await _auth.signInAnonymously();
   }
@@ -51,10 +42,6 @@ class AuthService {
     // 4. Once signed in, return the UserCredential
     final userCredential = await _auth.signInWithCredential(credential);
     return userCredential.user;
-  }
-
-  Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> signOut() async {
