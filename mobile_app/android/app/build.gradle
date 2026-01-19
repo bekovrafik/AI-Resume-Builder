@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.airesumebuilder.app"
-    compileSdk 36
+    compileSdk 35
     ndkVersion "27.0.12077973"
 
     compileOptions {
@@ -34,8 +34,8 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdkVersion 23
-        targetSdk 36
-        versionCode 7
+        targetSdk 35
+        versionCode 8
         versionName "1.0.0"
         multiDexEnabled true
 
@@ -70,6 +70,11 @@ android {
             // Native Debug Symbols
             ndk {
                 debugSymbolLevel 'FULL'
+            }
+            packaging {
+                jniLibs {
+                    useLegacyPackaging = false
+                }
             }
         }
     }
