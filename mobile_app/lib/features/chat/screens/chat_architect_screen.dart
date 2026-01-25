@@ -133,9 +133,10 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
             padding: const EdgeInsets.only(top: 10, left: 16, right: 16),
             decoration: BoxDecoration(
               border: Border(
-                  bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
+                  bottom:
+                      BorderSide(color: Colors.white.withValues(alpha: 0.1))),
               color: AppColors.midnightNavy
-                  .withOpacity(0.8), // Semi-transparent header
+                  .withValues(alpha: 0.8), // Semi-transparent header
             ),
             child: SafeArea(
               child: Row(
@@ -144,7 +145,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.arrow_back,
@@ -199,7 +200,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
+                              color: Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Icon(Icons.chat_bubble_outline,
@@ -252,10 +253,11 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                               border: isUser
                                   ? null
                                   : Border.all(
-                                      color: Colors.white.withOpacity(0.1)),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.1)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 )
@@ -282,7 +284,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                                     fontSize: 8,
                                     color: isUser
                                         ? AppColors.midnightNavy
-                                            .withOpacity(0.6)
+                                            .withValues(alpha: 0.6)
                                         : Colors.grey,
                                   ),
                                 ),
@@ -328,9 +330,10 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
               padding: const EdgeInsets.only(
                   top: 16, bottom: 24, left: 16, right: 16),
               decoration: BoxDecoration(
-                color: AppColors.midnightNavy.withOpacity(0.9),
+                color: AppColors.midnightNavy.withValues(alpha: 0.9),
                 border: Border(
-                    top: BorderSide(color: Colors.white.withOpacity(0.1))),
+                    top:
+                        BorderSide(color: Colors.white.withValues(alpha: 0.1))),
               ),
               child: SafeArea(
                 top: false,
@@ -353,8 +356,8 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                                           horizontal: 16, vertical: 8),
                                       decoration: BoxDecoration(
                                         border: Border.all(
-                                            color:
-                                                Colors.white.withOpacity(0.2)),
+                                            color: Colors.white
+                                                .withValues(alpha: 0.2)),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(action,
@@ -375,7 +378,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.attach_file,
@@ -387,10 +390,10 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             height: 44,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
+                              color: Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(22),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.1)),
+                                  color: Colors.white.withValues(alpha: 0.1)),
                             ),
                             child: TextField(
                               controller: _textController,

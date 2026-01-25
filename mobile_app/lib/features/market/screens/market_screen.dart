@@ -94,7 +94,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2)),
                     ),
                   ),
@@ -208,7 +208,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                         IconButton(
                           onPressed: () => _loadFeed(),
                           icon: Icon(Icons.refresh,
-                              color: textColor.withOpacity(0.5)),
+                              color: textColor.withValues(alpha: 0.5)),
                         ),
                       ],
                     )
@@ -222,12 +222,12 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                 child: Row(
                   children: [
                     Icon(Icons.location_on,
-                        size: 14, color: textColor.withOpacity(0.5)),
+                        size: 14, color: textColor.withValues(alpha: 0.5)),
                     const SizedBox(width: 4),
                     Text(
                         "${_selectedRole ?? 'Loading...'} in ${_selectedLocation ?? '...'}",
                         style: AppTypography.bodySmall.copyWith(
-                            color: textColor.withOpacity(0.5),
+                            color: textColor.withValues(alpha: 0.5),
                             fontSize: 12)),
                   ],
                 ),
@@ -245,7 +245,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                               children: [
                                 Icon(Icons.search_off,
                                     size: 64,
-                                    color: textColor.withOpacity(0.3)),
+                                    color: textColor.withValues(alpha: 0.3)),
                                 const SizedBox(height: 16),
                                 Text(
                                   "No Opportunities Found",
@@ -261,7 +261,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                                     textAlign: TextAlign.center,
                                     style: AppTypography.bodySmall.copyWith(
                                         color:
-                                            textColor.withOpacity(0.5)),
+                                            textColor.withValues(alpha: 0.5)),
                                   ),
                                 ),
                                 const SizedBox(height: 24),
@@ -288,7 +288,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                                       _openFilterModal(textColor, isDark),
                                   child: Text("Adjust Filters",
                                       style: TextStyle(
-                                          color: textColor.withOpacity(0.7))),
+                                          color: textColor.withValues(
+                                              alpha: 0.7))),
                                 )
                               ],
                             ),
@@ -324,14 +325,14 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
       children: [
         Text(label,
             style: AppTypography.labelSmall.copyWith(
-                fontSize: 10, color: textColor.withOpacity(0.6))),
+                fontSize: 10, color: textColor.withValues(alpha: 0.6))),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-              color: textColor.withOpacity(0.05),
+              color: textColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: textColor.withOpacity(0.1))),
+              border: Border.all(color: textColor.withValues(alpha: 0.1))),
           child: TextField(
             controller: controller,
             style: TextStyle(color: textColor),
@@ -349,7 +350,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -367,7 +368,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                      color: AppColors.strategicGold.withOpacity(0.4),
+                      color: AppColors.strategicGold.withValues(alpha: 0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 4))
                 ],
@@ -401,7 +402,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12)),
                       child: const Icon(Icons.business,
                           size: 30, color: Colors.grey),
@@ -422,7 +423,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.bodySmall.copyWith(
-                                  color: textColor.withOpacity(0.6))),
+                                  color: textColor.withValues(alpha: 0.6))),
                         ],
                       ),
                     )
@@ -440,7 +441,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                 Text(
                   card.salaryRange ?? "\$100k - \$150k",
                   style: AppTypography.header3
-                      .copyWith(color: textColor.withOpacity(0.8)),
+                      .copyWith(color: textColor.withValues(alpha: 0.8)),
                 ),
                 const SizedBox(height: 24),
                 Wrap(
@@ -451,13 +452,13 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                                color: textColor.withOpacity(0.05),
+                                color: textColor.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                    color: textColor.withOpacity(0.1))),
+                                    color: textColor.withValues(alpha: 0.1))),
                             child: Text(tag,
                                 style: AppTypography.labelSmall.copyWith(
-                                    color: textColor.withOpacity(0.8),
+                                    color: textColor.withValues(alpha: 0.8),
                                     fontSize: 10)),
                           ))
                       .toList(),
@@ -466,7 +467,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                 Text(
                   card.description ?? "",
                   style: AppTypography.bodySmall.copyWith(
-                      color: textColor.withOpacity(0.7), height: 1.6),
+                      color: textColor.withValues(alpha: 0.7), height: 1.6),
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -503,7 +504,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4))
             ]),

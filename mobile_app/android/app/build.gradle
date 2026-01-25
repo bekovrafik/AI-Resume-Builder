@@ -8,6 +8,24 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
@@ -16,7 +34,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.airesumebuilder.app"
-    compileSdk 35
+    compileSdk rootProject.ext.compileSdkVersion
     ndkVersion "27.0.12077973"
 
     compileOptions {
@@ -33,10 +51,10 @@ android {
         applicationId "com.airesumebuilder.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion 23
-        targetSdk 35
-        versionCode 18
-        versionName "1.0.0"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
         multiDexEnabled true
 
         externalNativeBuild {
@@ -85,6 +103,10 @@ android {
             useLegacyPackaging = false
         }
     }
+}
+
+dependencies {
+    implementation "androidx.activity:activity-ktx:1.9.3"
 }
 
 flutter {

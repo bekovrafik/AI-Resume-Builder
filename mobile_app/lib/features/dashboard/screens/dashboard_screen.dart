@@ -59,9 +59,10 @@ class DashboardScreen extends ConsumerWidget {
                             shape: BoxShape.circle,
                             color: isDark
                                 ? Colors.white10
-                                : AppColors.midnightNavy.withOpacity(0.1),
+                                : AppColors.midnightNavy.withValues(alpha: 0.1),
                             border: Border.all(
-                                color: AppColors.strategicGold.withOpacity(0.3),
+                                color: AppColors.strategicGold
+                                    .withValues(alpha: 0.3),
                                 width: 2),
                           ),
                           child: profileData.avatarUrl != null
@@ -329,7 +330,7 @@ class DashboardScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: effectiveIconColor.withOpacity(0.1),
+                color: effectiveIconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: effectiveIconColor, size: 20),

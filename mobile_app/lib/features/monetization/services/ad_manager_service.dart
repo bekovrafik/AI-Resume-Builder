@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'package:mobile_app/core/utils/ad_helper.dart';
+
 class AdManagerService {
   static final AdManagerService instance = AdManagerService._internal();
 
@@ -12,7 +14,7 @@ class AdManagerService {
 
   // TEST ID for Rewarded Interstitial
   // Replace with real ID in production
-  final String _adUnitId = 'ca-app-pub-3940256099942544/5354046379';
+  String get _adUnitId => AdHelper.rewardedInterstitialAdUnitId;
 
   void preloadAd() {
     if (_rewardedInterstitialAd != null || _isAdLoading) return;
