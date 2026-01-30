@@ -9,6 +9,9 @@ import 'package:mobile_app/core/ui/gradient_background.dart';
 
 import 'package:mobile_app/core/services/gemini_service.dart';
 import 'package:mobile_app/core/ui/custom_snackbar.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
+import 'package:mobile_app/features/premium/providers/polish_token_provider.dart';
+import 'package:mobile_app/features/premium/widgets/token_hud.dart';
 
 // Simple provider for chat state (keeping original logic)
 final chatMessagesProvider = StateProvider<List<Content>>((ref) => []);
@@ -27,13 +30,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
   bool _isLoading = false;
   ChatSession? _chatSession;
 
-  final List<String> _quickActions = [
-    "Apply Executive Tone",
-    "Inject High-Impact Metrics",
-    "FAANG ATS Optimization",
-    "Refine for Startups",
-    "Shorten Summary"
-  ];
+  // Quick actions moved to build for context access
 
   @override
   void initState() {
@@ -66,6 +63,17 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
 
     if (quickAction == null) _textController.clear();
 
+    // Check Credits
+    final creditNotifier = ref.read(polishTokenProvider.notifier);
+    final hasCredit = await creditNotifier.spendCredit();
+
+    if (!hasCredit) {
+      if (mounted) {
+        _showInsufficientCreditsDialog();
+      }
+      return;
+    }
+
     // 1. Update UI immediately
     final userContent = Content.text(text);
     ref
@@ -95,7 +103,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
       if (mounted) {
         CustomSnackBar.show(
           context,
-          message: 'Error: $e',
+          message: AppLocalizations.of(context)!.errorPrefix(e.toString()),
           type: SnackBarType.error,
         );
       }
@@ -120,11 +128,22 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final List<String> quickActions = [
+      l10n.actionExecutiveTone,
+      l10n.actionHighImpactMetrics,
+      l10n.actionAtsOptimization,
+      l10n.actionRefineStartups,
+      l10n.actionShortenSummary,
+    ];
+
     final messages = ref.watch(chatMessagesProvider);
 
     return GradientBackground(
       withOrbs: false, // Cleaner look for chat
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        extendBodyBehindAppBar: true,
         backgroundColor: Colors.transparent,
         // Pinned Header
         appBar: PreferredSize(
@@ -158,7 +177,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("AI ASSISTANT",
+                      Text(AppLocalizations.of(context)!.aiAssistant,
                           style: AppTypography.labelSmall
                               .copyWith(color: Colors.white)),
                       Row(
@@ -169,7 +188,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                               decoration: const BoxDecoration(
                                   color: Colors.green, shape: BoxShape.circle)),
                           const SizedBox(width: 4),
-                          Text("ONLINE",
+                          Text(AppLocalizations.of(context)!.onlineStatus,
                               style: AppTypography.labelSmall
                                   .copyWith(color: Colors.grey, fontSize: 8)),
                         ],
@@ -177,6 +196,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                     ],
                   ),
                   const Spacer(),
+                  const TokenHUD(),
                   IconButton(
                     icon: const Icon(Icons.refresh, color: Colors.white54),
                     onPressed: () =>
@@ -207,12 +227,12 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                                 color: AppColors.strategicGold),
                           ),
                           const SizedBox(height: 16),
-                          Text("NARRATIVE FORGE",
+                          Text(AppLocalizations.of(context)!.narrativeForge,
                               style: AppTypography.header3
                                   .copyWith(color: Colors.white)),
                           const SizedBox(height: 8),
                           Text(
-                            "Awaiting instructions.\nHow shall we refine your career legacy today?",
+                            AppLocalizations.of(context)!.awaitingInstructions,
                             textAlign: TextAlign.center,
                             style: AppTypography.bodySmall
                                 .copyWith(color: Colors.grey),
@@ -234,7 +254,9 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             padding: const EdgeInsets.all(16),
-                            constraints: const BoxConstraints(maxWidth: 280),
+                            constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.75),
                             decoration: BoxDecoration(
                               color: isUser
                                   ? AppColors.strategicGold
@@ -279,7 +301,9 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  isUser ? "SENT" : "AI",
+                                  isUser
+                                      ? AppLocalizations.of(context)!.sentStatus
+                                      : AppLocalizations.of(context)!.aiStatus,
                                   style: AppTypography.labelSmall.copyWith(
                                     fontSize: 8,
                                     color: isUser
@@ -343,7 +367,7 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: _quickActions
+                        children: quickActions
                             .map((action) => Padding(
                                   padding: const EdgeInsets.only(right: 8),
                                   child: InkWell(
@@ -400,7 +424,8 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
                               style: AppTypography.bodyMedium
                                   .copyWith(color: Colors.white),
                               decoration: InputDecoration(
-                                hintText: "Apply Refinement...",
+                                hintText: AppLocalizations.of(context)!
+                                    .applyRefinementHint,
                                 hintStyle: AppTypography.bodyMedium
                                     .copyWith(color: Colors.white24),
                                 border: InputBorder.none,
@@ -432,6 +457,45 @@ class _ChatArchitectScreenState extends ConsumerState<ChatArchitectScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showInsufficientCreditsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.midnightNavy,
+        title: Text(
+          "Insufficient AI Credits",
+          style: AppTypography.header3.copyWith(color: Colors.white),
+        ),
+        content: Text(
+          "You are out of credits for the AI Architect. Refill for free to continue?",
+          style: AppTypography.bodySmall.copyWith(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.strategicGold,
+              foregroundColor: AppColors.midnightNavy,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(polishTokenProvider.notifier).addCredits(5);
+              CustomSnackBar.show(
+                context,
+                message: "Refilled 5 Credits (Free Beta Offer)",
+                type: SnackBarType.success,
+              );
+            },
+            child: const Text("Refill Credits"),
+          )
+        ],
       ),
     );
   }

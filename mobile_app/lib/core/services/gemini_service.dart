@@ -134,6 +134,55 @@ You DO NOT just "write" a resume. You PERFORM A STRUCTURED TRANSFORMATION.
     return generatedData;
   }
 
+  Future<ResumeData> parseResumeText(String text) async {
+    const prompt = '''
+As an AI Resume Parser, analyze the provided raw text and extract structured career data. 
+Identify the candidate's name, role, professional summary, work history (company, role, dates, achievements), and categorized skills.
+If details are ambiguous, extract the most plausible information.
+''';
+
+    final schema = Schema.object(properties: {
+      'fullName': Schema.string(),
+      'targetRole': Schema.string(),
+      'summary': Schema.string(),
+      'email': Schema.string(),
+      'phone': Schema.string(),
+      'location': Schema.string(),
+      'linkedIn': Schema.string(),
+      'experiences': Schema.array(
+          items: Schema.object(properties: {
+        'company': Schema.string(),
+        'role': Schema.string(),
+        'period': Schema.string(),
+        'achievements': Schema.array(items: Schema.string()),
+      })),
+      'education': Schema.array(
+          items: Schema.object(properties: {
+        'institution': Schema.string(),
+        'degree': Schema.string(),
+        'period': Schema.string(),
+        'details': Schema.string(),
+      })),
+      'skills': Schema.array(
+          items: Schema.object(properties: {
+        'category': Schema.string(),
+        'skills': Schema.array(items: Schema.string()),
+      })),
+    });
+
+    final response = await _model.generateContent(
+      [Content.text("$prompt\n\nRAW TEXT:\n$text")],
+      generationConfig: GenerationConfig(
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+      ),
+    );
+
+    if (response.text == null) throw Exception('Empty response from AI parser');
+    final json = jsonDecode(_cleanJson(response.text!));
+    return _mapJsonToResumeData(json);
+  }
+
   Future<Map<String, dynamic>> suggestMetrics(String history) async {
     final prompt = '''
 As a Lead Career Coach, perform a Narrative Audit on this work history. 

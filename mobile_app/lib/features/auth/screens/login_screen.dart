@@ -6,6 +6,7 @@ import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/features/auth/services/auth_service.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -79,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               size: 50, color: Colors.white),
                           const SizedBox(height: 16),
                           Text(
-                            "AI RESUME\nBUILDER",
+                            AppLocalizations.of(context)!.loginTitle,
                             style: AppTypography.header2.copyWith(
                               color: Colors.white,
                               letterSpacing: 2.0,
@@ -89,7 +90,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Create your professional resume with AI",
+                            AppLocalizations.of(context)!.loginSubtitle,
                             style: AppTypography.labelSmall.copyWith(
                               color: Colors.white54,
                               letterSpacing: 0.5,
@@ -130,7 +131,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 icon: const Icon(Icons.g_mobiledata,
                                     size: 28, color: Colors.black),
                                 label: Text(
-                                  "Sign in with Google",
+                                  AppLocalizations.of(context)!
+                                      .signInWithGoogle,
                                   style: AppTypography.labelLarge.copyWith(
                                     color: Colors.black,
                                     fontSize: 14,
@@ -153,13 +155,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             // Secondary Login: Guest
                             _buildOutlineButton(
                               icon: Icons.person_outline,
-                              label: "Continue as Guest",
+                              label:
+                                  AppLocalizations.of(context)!.continueAsGuest,
                               onPressed: _handleGuestLogin,
                             ),
                           ],
                           const SizedBox(height: 24),
                           Text(
-                            "By continuing, you agree to our Terms of Service",
+                            AppLocalizations.of(context)!.termsAgreement,
                             style: AppTypography.labelSmall.copyWith(
                               color: Colors.white30,
                               fontSize: 9,

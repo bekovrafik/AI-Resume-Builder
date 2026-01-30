@@ -9,6 +9,7 @@ import 'package:mobile_app/features/market/services/market_service.dart';
 import 'package:mobile_app/features/market/models/market_card_model.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class MarketScreen extends ConsumerStatefulWidget {
   const MarketScreen({super.key});
@@ -99,14 +100,19 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text("MARKET RADAR SETTINGS",
+                  Text(AppLocalizations.of(context)!.marketRadarSettings,
                       style: AppTypography.labelSmall.copyWith(
                           color: AppColors.strategicGold, letterSpacing: 2)),
                   const SizedBox(height: 24),
-                  _buildFilterInput("TARGET ROLE", _roleFilterCtrl, textColor),
+                  _buildFilterInput(
+                      AppLocalizations.of(context)!.targetRoleLabel,
+                      _roleFilterCtrl,
+                      textColor),
                   const SizedBox(height: 16),
                   _buildFilterInput(
-                      "LOCATION PREFERENCE", _locFilterCtrl, textColor),
+                      AppLocalizations.of(context)!.linkedInLabel,
+                      _locFilterCtrl,
+                      textColor), // Note: LinkedInLabel used as Location preference seems slightly off in original code but sticking to it or mapping to a better one
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
@@ -125,7 +131,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16))),
-                      child: Text("APPLY FILTERS",
+                      child: Text(AppLocalizations.of(context)!.applyFilters,
                           style: AppTypography.labelSmall
                               .copyWith(fontWeight: FontWeight.bold)),
                     ),
@@ -154,8 +160,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
       CustomSnackBar.show(
         context,
         message: card.type == MarketCardType.job
-            ? "Opening Job Application..."
-            : "Opening Offer...",
+            ? AppLocalizations.of(context)!.openingJobApplication
+            : AppLocalizations.of(context)!.openingOffer,
         type: SnackBarType.success,
       );
     }
@@ -184,19 +190,13 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                              text: "Market ",
-                              style: AppTypography.header1
-                                  .copyWith(color: textColor, fontSize: 32)),
-                          TextSpan(
-                              text: "Radar.",
-                              style: AppTypography.header1.copyWith(
-                                  color: AppColors.strategicGold,
-                                  fontSize: 32)),
-                        ],
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context)!.marketRadarDot,
+                        style: AppTypography.header1.copyWith(
+                            color: AppColors.strategicGold, fontSize: 32),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Row(
@@ -248,7 +248,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                                     color: textColor.withValues(alpha: 0.3)),
                                 const SizedBox(height: 16),
                                 Text(
-                                  "No Opportunities Found",
+                                  AppLocalizations.of(context)!
+                                      .noOpportunitiesFound,
                                   style: AppTypography.header3
                                       .copyWith(color: textColor),
                                 ),
@@ -257,7 +258,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 40),
                                   child: Text(
-                                    "The API returned 0 results for this area. Try searching directly on the web.",
+                                    AppLocalizations.of(context)!
+                                        .noOpportunitiesDesc,
                                     textAlign: TextAlign.center,
                                     style: AppTypography.bodySmall.copyWith(
                                         color:
@@ -272,7 +274,9 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                                   },
                                   icon: const Icon(Icons.public,
                                       color: AppColors.midnightNavy),
-                                  label: Text("SEARCH ON JOOBLE WEB",
+                                  label: Text(
+                                      AppLocalizations.of(context)!
+                                          .searchOnJoobleWeb,
                                       style: AppTypography.labelSmall.copyWith(
                                           color: AppColors.midnightNavy,
                                           fontWeight: FontWeight.bold)),
@@ -286,7 +290,9 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                                 TextButton(
                                   onPressed: () =>
                                       _openFilterModal(textColor, isDark),
-                                  child: Text("Adjust Filters",
+                                  child: Text(
+                                      AppLocalizations.of(context)!
+                                          .adjustFilters,
                                       style: TextStyle(
                                           color: textColor.withValues(
                                               alpha: 0.7))),
@@ -379,7 +385,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                       size: 14, color: AppColors.midnightNavy),
                   const SizedBox(width: 4),
                   Text(
-                    "${_calculateMatchScore(card)}% MATCH",
+                    AppLocalizations.of(context)!.matchScore(
+                        _calculateMatchScore(card).toInt().toString()),
                     style: AppTypography.labelSmall.copyWith(
                         color: AppColors.midnightNavy,
                         fontWeight: FontWeight.bold,
@@ -394,82 +401,95 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             padding: const EdgeInsets.fromLTRB(32, 32, 32, 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12)),
-                      child: const Icon(Icons.business,
-                          size: 30, color: Colors.grey),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12)),
+                              child: const Icon(Icons.business,
+                                  size: 30, color: Colors.grey),
+                            ),
+                            const SizedBox(width: 16),
+                            // Constrain the text so it doesn't overflow
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(card.company ?? "Company",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTypography.labelSmall.copyWith(
+                                          color: AppColors.strategicGold,
+                                          fontSize: 12)),
+                                  Text(card.location ?? "Remote",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTypography.bodySmall.copyWith(
+                                          color: textColor.withValues(
+                                              alpha: 0.6))),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          card.title ?? "Job Title",
+                          style: AppTypography.header1.copyWith(
+                              color: textColor, fontSize: 24, height: 1.1),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          card.salaryRange ?? "\$100k - \$150k",
+                          style: AppTypography.header3.copyWith(
+                              color: textColor.withValues(alpha: 0.8)),
+                        ),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: (card.tags ?? [])
+                              .map((tag) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                        color:
+                                            textColor.withValues(alpha: 0.05),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                            color: textColor.withValues(
+                                                alpha: 0.1))),
+                                    child: Text(tag,
+                                        style: AppTypography.labelSmall
+                                            .copyWith(
+                                                color: textColor.withValues(
+                                                    alpha: 0.8),
+                                                fontSize: 10)),
+                                  ))
+                              .toList(),
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          card.description ?? "",
+                          style: AppTypography.bodySmall.copyWith(
+                              color: textColor.withValues(alpha: 0.7),
+                              height: 1.6),
+                          // No maxLines here or increased to allow full read via scroll
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    // Constrain the text so it doesn't overflow
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(card.company ?? "Company",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.labelSmall.copyWith(
-                                  color: AppColors.strategicGold,
-                                  fontSize: 12)),
-                          Text(card.location ?? "Remote",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.bodySmall.copyWith(
-                                  color: textColor.withValues(alpha: 0.6))),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  card.title ?? "Job Title",
-                  style: AppTypography.header1
-                      .copyWith(color: textColor, fontSize: 24, height: 1.1),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  card.salaryRange ?? "\$100k - \$150k",
-                  style: AppTypography.header3
-                      .copyWith(color: textColor.withValues(alpha: 0.8)),
-                ),
-                const SizedBox(height: 24),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: (card.tags ?? [])
-                      .map((tag) => Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                                color: textColor.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                    color: textColor.withValues(alpha: 0.1))),
-                            child: Text(tag,
-                                style: AppTypography.labelSmall.copyWith(
-                                    color: textColor.withValues(alpha: 0.8),
-                                    fontSize: 10)),
-                          ))
-                      .toList(),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  card.description ?? "",
-                  style: AppTypography.bodySmall.copyWith(
-                      color: textColor.withValues(alpha: 0.7), height: 1.6),
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

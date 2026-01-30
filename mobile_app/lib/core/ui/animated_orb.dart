@@ -48,21 +48,24 @@ class _AnimatedOrbState extends State<AnimatedOrb>
 
   @override
   Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _animation,
-      child: Container(
-        width: widget.size,
-        height: widget.size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: widget.color.withValues(alpha: 0.4),
-          boxShadow: [
-            BoxShadow(
-              color: widget.color,
-              blurRadius: 100,
-              spreadRadius: 20,
+    return RepaintBoundary(
+      child: SlideTransition(
+        position: _animation,
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            // Optimization: BoxShadow with large blur is expensive.
+            // Using RadialGradient simulates the glow effect much cheaper.
+            gradient: RadialGradient(
+              colors: [
+                widget.color.withValues(alpha: 0.6),
+                widget.color.withValues(alpha: 0.0),
+              ],
+              stops: const [0.0, 0.7],
             ),
-          ],
+          ),
         ),
       ),
     );

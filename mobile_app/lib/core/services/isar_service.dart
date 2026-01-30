@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/models/user_model.dart';

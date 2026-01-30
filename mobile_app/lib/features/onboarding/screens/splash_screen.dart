@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -61,10 +62,10 @@ class _SplashScreenState extends State<SplashScreen>
               const Icon(Icons.description,
                   size: 80, color: AppColors.strategicGold),
               const SizedBox(height: 16),
-              Text('ROLDANI',
+              Text(AppLocalizations.of(context)!.splashTitle,
                   style: AppTextStyles.headerLarge
                       .copyWith(color: AppColors.strategicGold)),
-              Text('Professional Suite',
+              Text(AppLocalizations.of(context)!.splashSubtitle,
                   style:
                       AppTextStyles.bodyMedium.copyWith(color: Colors.white70)),
             ],

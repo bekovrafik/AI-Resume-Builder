@@ -1,7 +1,7 @@
 name: mobile_app
 description: "AI Resume Builder & CV Mobile Application"
 publish_to: 'none'
-version: 1.0.0+23
+version: 1.0.0+29
 
 environment:
   sdk: ^3.5.4
@@ -15,8 +15,8 @@ dependencies:
   go_router: ^14.2.0
 
   # Data & Local Storage
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  isar_community: ^3.3.0
+  isar_community_flutter_libs: ^3.3.0
   path_provider: ^2.1.3
   json_annotation: ^4.9.0
 
@@ -50,17 +50,24 @@ dependencies:
   http: ^1.6.0
   html_unescape: ^2.0.0
   flutter_native_splash: ^2.4.4
+  firebase_analytics: ^11.6.0
+  firebase_crashlytics: ^4.3.10
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
   build_runner: ^2.4.11
-  isar_generator: ^3.1.0+1
+  isar_community_generator: ^3.3.0
   json_serializable: ^6.8.0
   flutter_launcher_icons: ^0.14.4
 
+
+
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - .env

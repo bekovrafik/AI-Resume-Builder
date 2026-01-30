@@ -32,35 +32,41 @@ class GradientBackground extends StatelessWidget {
           ),
 
           // Glowing Orbs
-          if (withOrbs) ...[
-            // Top Left Orb
-            Positioned(
-              top: -50,
-              left: -50,
-              child: AnimatedOrb(
-                color: isDark
-                    ? const Color(0xFFCA8A04)
-                        .withValues(alpha: 0.15) // Darker Gold
-                    : const Color(0xFFEAB308).withValues(alpha: 0.1), // Gold
-                size: 300,
-                offset: const Offset(0.1, 0.1), // Small movement
-                duration: const Duration(seconds: 6),
+          if (withOrbs)
+            RepaintBoundary(
+              child: Stack(
+                children: [
+                  // Top Left Orb
+                  Positioned(
+                    top: -50,
+                    left: -50,
+                    child: AnimatedOrb(
+                      color: isDark
+                          ? const Color(0xFFCA8A04)
+                              .withValues(alpha: 0.15) // Darker Gold
+                          : const Color(0xFFEAB308)
+                              .withValues(alpha: 0.1), // Gold
+                      size: 300,
+                      offset: const Offset(0.1, 0.1), // Small movement
+                      duration: const Duration(seconds: 6),
+                    ),
+                  ),
+                  // Bottom Right Orb
+                  Positioned(
+                    bottom: -50,
+                    right: -50,
+                    child: AnimatedOrb(
+                      color: isDark
+                          ? const Color(0xFFCA8A04).withValues(alpha: 0.1)
+                          : const Color(0xFFEAB308).withValues(alpha: 0.15),
+                      size: 350,
+                      offset: const Offset(-0.1, -0.1),
+                      duration: const Duration(seconds: 8),
+                    ),
+                  ),
+                ],
               ),
             ),
-            // Bottom Right Orb
-            Positioned(
-              bottom: -50,
-              right: -50,
-              child: AnimatedOrb(
-                color: isDark
-                    ? const Color(0xFFCA8A04).withValues(alpha: 0.1)
-                    : const Color(0xFFEAB308).withValues(alpha: 0.15),
-                size: 350,
-                offset: const Offset(-0.1, -0.1),
-                duration: const Duration(seconds: 8),
-              ),
-            ),
-          ],
 
           // Main Content
           Positioned.fill(

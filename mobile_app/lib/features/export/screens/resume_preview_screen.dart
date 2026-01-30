@@ -10,6 +10,7 @@ import 'package:mobile_app/features/resume/models/resume_model.dart';
 import 'package:printing/printing.dart';
 import 'package:mobile_app/features/resume/providers/resume_provider.dart';
 import 'package:mobile_app/features/monetization/services/ad_manager_service.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class ResumePreviewScreen extends ConsumerStatefulWidget {
   final ResumeData? resumeData;
@@ -146,7 +147,8 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
           await PdfGeneratorService().generateResumePdf(data, _selectedTheme);
       await Printing.sharePdf(
           bytes: pdfBytes,
-          filename: 'Resume_${data.fullName ?? "Candidate"}.pdf');
+          filename:
+              'Resume_${data.fullName?.replaceAll(' ', '_') ?? "Candidate"}.pdf');
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -206,7 +208,8 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Resume Preview', style: TextStyle(color: textColor)),
+        title: Text(AppLocalizations.of(context)!.resumePreview,
+            style: AppTypography.header3.copyWith(color: textColor)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: AppColors.strategicGold),
@@ -279,7 +282,7 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
                               shadowColor: AppColors.strategicGold
                                   .withValues(alpha: 0.5)),
                           icon: const Icon(Icons.download_rounded),
-                          label: Text("EXPORT PDF",
+                          label: Text(AppLocalizations.of(context)!.exportPdf,
                               style: AppTypography.labelSmall
                                   .copyWith(fontWeight: FontWeight.bold)),
                         ),
@@ -303,28 +306,39 @@ class _ResumePreviewScreenState extends ConsumerState<ResumePreviewScreen> {
           _selectedTheme = themeName;
         });
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.strategicGold
-                : (isDark ? Colors.grey[800] : Colors.white),
-            borderRadius: BorderRadius.circular(12),
+                : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
                 color: isSelected
                     ? AppColors.strategicGold
-                    : Colors.grey.withValues(alpha: 0.3),
-                width: 2)),
+                    : Colors.white.withValues(alpha: 0.1),
+                width: 2),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                        color: AppColors.strategicGold.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4))
+                  ]
+                : []),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon,
+                size: 20,
                 color: isSelected ? AppColors.midnightNavy : Colors.grey),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               themeName,
               style: AppTypography.labelSmall.copyWith(
                   color: isSelected ? AppColors.midnightNavy : Colors.grey,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold),
             )
           ],

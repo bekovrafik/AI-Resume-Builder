@@ -6,6 +6,7 @@ import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/core/ui/glass_container.dart';
 
 import 'package:mobile_app/core/providers/theme_provider.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class MainScaffold extends ConsumerWidget {
   final Widget child;
@@ -54,7 +55,7 @@ class MainScaffold extends ConsumerWidget {
           children: [
             const Icon(Icons.description, color: AppColors.strategicGold),
             const SizedBox(width: 8),
-            Text("AI RESUME BUILDER",
+            Text(AppLocalizations.of(context)!.loginTitle.replaceAll('\n', ' '),
                 style: AppTypography.header3
                     .copyWith(fontSize: 14, letterSpacing: 2)),
           ],
@@ -99,11 +100,18 @@ class MainScaffold extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(context, 0, "Dash", Icons.person_outline, isDark),
-              _buildNavItem(context, 1, "Build", Icons.edit_document, isDark),
-              _buildNavItem(context, 2, "Market", Icons.radar, isDark),
+              _buildNavItem(context, 0, AppLocalizations.of(context)!.navDash,
+                  Icons.person_outline, isDark),
+              _buildNavItem(context, 1, AppLocalizations.of(context)!.navBuild,
+                  Icons.edit_document, isDark),
+              _buildNavItem(context, 2, AppLocalizations.of(context)!.navMarket,
+                  Icons.radar, isDark),
               _buildNavItem(
-                  context, 3, "Preview", Icons.visibility_outlined, isDark),
+                  context,
+                  3,
+                  AppLocalizations.of(context)!.navPreview,
+                  Icons.visibility_outlined,
+                  isDark),
             ],
           ),
         ),

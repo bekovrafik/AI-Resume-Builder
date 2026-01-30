@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'resume_model.g.dart';
@@ -35,6 +35,8 @@ class ResumeData {
   String? linkedIn;
 
   bool? isShortInput;
+  String? rawHistory;
+  String? rawSpecs;
 
   ResumeData({
     this.fullName,
@@ -49,6 +51,8 @@ class ResumeData {
     this.location,
     this.linkedIn,
     this.isShortInput,
+    this.rawHistory,
+    this.rawSpecs,
   });
 
   factory ResumeData.fromJson(Map<String, dynamic> json) =>

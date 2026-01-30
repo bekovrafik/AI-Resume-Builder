@@ -12,6 +12,7 @@ import 'package:mobile_app/features/profile/providers/profile_provider.dart';
 import 'package:mobile_app/features/resume/models/resume_model.dart';
 import 'package:mobile_app/core/services/gemini_service.dart';
 import 'package:mobile_app/features/auth/services/auth_service.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
@@ -69,7 +70,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Profile',
+        title: Text(AppLocalizations.of(context)!.profileTitle,
             style:
                 AppTypography.header3.copyWith(color: textColor, fontSize: 18)),
         backgroundColor: Colors.transparent,
@@ -149,15 +150,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             if (_roleController.text.isEmpty) {
                               CustomSnackBar.show(
                                 context,
-                                message: "Please enter Target Role first.",
+                                message: AppLocalizations.of(context)!
+                                    .enterTargetRoleError,
                                 type: SnackBarType.error,
                               );
                               return;
                             }
                             CustomSnackBar.show(
                               context,
-                              message:
-                                  "Generative AI Agent: Designing Avatar...",
+                              message: AppLocalizations.of(context)!
+                                  .generatingAvatarMessage,
                               type: SnackBarType.info,
                             );
 
@@ -172,14 +174,15 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           },
                           icon: const Icon(Icons.auto_awesome,
                               color: AppColors.strategicGold, size: 16),
-                          label: Text("GENERATE AI AVATAR",
+                          label: Text(
+                              AppLocalizations.of(context)!.generateAiAvatar,
                               style: AppTypography.labelSmall
                                   .copyWith(color: AppColors.strategicGold)),
                         ),
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        'PROFILE DATA',
+                        AppLocalizations.of(context)!.profileData,
                         style: AppTypography.labelSmall.copyWith(
                             color: AppColors.strategicGold, letterSpacing: 2),
                         textAlign: TextAlign.center,
@@ -192,34 +195,66 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           children: [
                             _buildGlassTextField(
                               controller: _nameController,
-                              label: "FULL NAME",
+                              label:
+                                  AppLocalizations.of(context)!.fullNameLabel,
+                              hint: AppLocalizations.of(context)!.fullNameHint,
                               icon: Icons.person_outline,
                               textColor: textColor,
                               hintColor: hintColor,
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? AppLocalizations.of(context)!.nameRequired
+                                  : null,
                             ),
                             const SizedBox(height: 20),
                             _buildGlassTextField(
                               controller: _roleController,
-                              label: "TARGET ROLE",
+                              label:
+                                  AppLocalizations.of(context)!.targetRoleLabel,
+                              hint:
+                                  AppLocalizations.of(context)!.targetRoleHint,
                               icon: Icons.badge_outlined,
                               textColor: textColor,
                               hintColor: hintColor,
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? AppLocalizations.of(context)!.roleRequired
+                                  : null,
                             ),
                             const SizedBox(height: 20),
                             _buildGlassTextField(
                               controller: _emailController,
-                              label: "CONTACT EMAIL",
+                              label: AppLocalizations.of(context)!.emailLabel,
+                              hint: AppLocalizations.of(context)!.emailHint,
                               icon: Icons.email_outlined,
                               textColor: textColor,
                               hintColor: hintColor,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) return null;
+                                final reg = RegExp(
+                                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                                if (!reg.hasMatch(v)) {
+                                  return AppLocalizations.of(context)!
+                                      .invalidEmail;
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 20),
                             _buildGlassTextField(
                               controller: _linkedInController,
-                              label: "LINKEDIN PROFILE LINK",
+                              label:
+                                  AppLocalizations.of(context)!.linkedInLabel,
+                              hint: AppLocalizations.of(context)!.linkedInHint,
                               icon: Icons.link,
                               textColor: textColor,
                               hintColor: hintColor,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) return null;
+                                if (!v.contains("linkedin.com/")) {
+                                  return AppLocalizations.of(context)!
+                                      .invalidLinkedIn;
+                                }
+                                return null;
+                              },
                             ),
                           ],
                         ),
@@ -238,7 +273,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                               color: AppColors.strategicGold
                                   .withValues(alpha: 0.5)),
                         ),
-                        child: Text("SAVE PROFILE",
+                        child: Text(AppLocalizations.of(context)!.saveProfile,
                             style: AppTypography.labelSmall
                                 .copyWith(color: Colors.white)),
                       ),
@@ -249,7 +284,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.redAccent,
                           ),
-                          child: Text("DELETE ACCOUNT",
+                          child: Text(
+                              AppLocalizations.of(context)!.deleteAccount,
                               style: AppTypography.labelSmall.copyWith(
                                   color: Colors.redAccent,
                                   fontWeight: FontWeight.bold,
@@ -275,9 +311,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget _buildGlassTextField({
     required TextEditingController controller,
     required String label,
+    required String hint,
     required IconData icon,
     required Color textColor,
     required Color hintColor,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,10 +339,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             decoration: InputDecoration(
               icon: Icon(icon, color: AppColors.strategicGold, size: 20),
               border: InputBorder.none,
-              hintText: "Enter $label...",
+              hintText: hint,
               hintStyle: TextStyle(color: hintColor),
             ),
-            validator: (value) => null, // Optional validation
+            validator: validator,
           ),
         ),
       ],
@@ -324,7 +362,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       CustomSnackBar.show(
         context,
-        message: 'Profile Updated',
+        message: AppLocalizations.of(context)!.profileUpdatedSuccess,
         type: SnackBarType.success,
       );
       context.pop();
@@ -337,20 +375,20 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.midnightNavy,
-          title: Text("Delete Account?",
+          title: Text(AppLocalizations.of(context)!.deleteAccountTitle,
               style: AppTypography.header3.copyWith(color: Colors.white)),
-          content: Text(
-              "This action is irreversible. All your resume data and profile information will be permanently removed.",
+          content: Text(AppLocalizations.of(context)!.deleteAccountContent,
               style: AppTypography.bodySmall.copyWith(color: Colors.white70)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("CANCEL", style: TextStyle(color: Colors.grey)),
+              child: Text(AppLocalizations.of(context)!.cancel,
+                  style: const TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text("DELETE",
-                  style: TextStyle(color: Colors.redAccent)),
+              child: Text(AppLocalizations.of(context)!.delete,
+                  style: const TextStyle(color: Colors.redAccent)),
             ),
           ],
         );
@@ -363,7 +401,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         if (mounted) {
           CustomSnackBar.show(
             context,
-            message: "Account Deleted successfully.",
+            message: AppLocalizations.of(context)!.accountDeletedSuccess,
             type: SnackBarType.success,
           );
           context.go('/');
@@ -372,7 +410,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         if (mounted) {
           CustomSnackBar.show(
             context,
-            message: "Deletion Failed: $e",
+            message:
+                AppLocalizations.of(context)!.deletionFailedError(e.toString()),
             type: SnackBarType.error,
           );
         }

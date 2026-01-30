@@ -7,6 +7,7 @@ import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/resume/providers/resume_provider.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class InterviewPrepScreen extends ConsumerStatefulWidget {
   const InterviewPrepScreen({super.key});
@@ -27,7 +28,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
     if (resumes == null || resumes.isEmpty) {
       CustomSnackBar.show(
         context,
-        message: "No resume found in Vault to analyze.",
+        message: AppLocalizations.of(context)!.noResumeFoundError,
         type: SnackBarType.error,
       );
       return;
@@ -50,7 +51,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
       if (mounted) {
         CustomSnackBar.show(
           context,
-          message: "Strategy Error: $e",
+          message: AppLocalizations.of(context)!.strategyError(e.toString()),
           type: SnackBarType.error,
         );
       }
@@ -65,7 +66,8 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("INTERVIEW STRATEGY", style: AppTypography.header3),
+        title: Text(AppLocalizations.of(context)!.interviewStrategy,
+            style: AppTypography.header3),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -103,7 +105,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
               size: 48, color: AppColors.strategicGold),
           const SizedBox(height: 16),
           Text(
-            "TACTICAL ANALYSIS",
+            AppLocalizations.of(context)!.tacticalAnalysis,
             style: AppTypography.labelSmall.copyWith(
               color: AppColors.strategicGold,
               letterSpacing: 2.0,
@@ -111,7 +113,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Generate behavioral questions tailored to your resume's target role.",
+            AppLocalizations.of(context)!.generateQuestionsDesc,
             textAlign: TextAlign.center,
             style: AppTypography.bodySmall.copyWith(color: Colors.white70),
           ),
@@ -126,7 +128,9 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
                   borderRadius: BorderRadius.circular(16)),
             ),
             child: Text(
-              _isLoading ? "ANALYZING..." : "GENERATE STRATEGY",
+              _isLoading
+                  ? AppLocalizations.of(context)!.analyzing
+                  : AppLocalizations.of(context)!.generateStrategy,
               style: AppTypography.labelSmall
                   .copyWith(fontWeight: FontWeight.bold),
             ),
@@ -140,7 +144,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
     return Expanded(
       child: Center(
         child: Text(
-          "AWAITING DEPLOYMENT",
+          AppLocalizations.of(context)!.awaitingDeployment,
           style: AppTypography.labelSmall.copyWith(
             color: Colors.white30,
             letterSpacing: 4.0,
@@ -159,7 +163,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
             const CircularProgressIndicator(color: AppColors.strategicGold),
             const SizedBox(height: 24),
             Text(
-              "PREPARING SCENARIOS...",
+              AppLocalizations.of(context)!.preparingScenarios,
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.strategicGold,
                 letterSpacing: 2.0,
@@ -184,7 +188,8 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "QUESTION ${index + 1}",
+                AppLocalizations.of(context)!
+                    .questionLabel((index + 1).toString()),
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.strategicGold,
                   fontSize: 10,
@@ -202,7 +207,7 @@ class _InterviewPrepScreenState extends ConsumerState<InterviewPrepScreen> {
               const Divider(color: Colors.white10),
               const SizedBox(height: 8),
               Text(
-                "INTENT: ${q['intent']}",
+                AppLocalizations.of(context)!.intentLabel(q['intent'] ?? ''),
                 style: AppTypography.bodySmall.copyWith(
                   color: Colors.white70,
                   fontSize: 11,

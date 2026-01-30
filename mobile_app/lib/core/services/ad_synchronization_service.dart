@@ -27,8 +27,18 @@ class AdSynchronizationService {
     loadRewardedInterstitialAd();
   }
 
+  bool _isAppOpenAdLoading = false;
+
   // --- App Open Ad (Warm Start) ---
   Future<void> loadAppOpenAd() {
+    if (_isAppOpenAdLoading) {
+      // Return a future that completes when the current loading finishes,
+      // or just return immediately if we don't need to chain.
+      // Simplified: just return to avoid double request.
+      return Future.value();
+    }
+
+    _isAppOpenAdLoading = true;
     final completer = Completer<void>();
     AppOpenAd.load(
       adUnitId: AdHelper.appOpenAdUnitId,
@@ -37,10 +47,12 @@ class AdSynchronizationService {
         onAdLoaded: (ad) {
           _appOpenAd = ad;
           _isAppOpenAdAvailable = true;
+          _isAppOpenAdLoading = false;
           if (!completer.isCompleted) completer.complete();
         },
         onAdFailedToLoad: (error) {
           _isAppOpenAdAvailable = false;
+          _isAppOpenAdLoading = false;
           if (!completer.isCompleted) completer.complete();
         },
       ),

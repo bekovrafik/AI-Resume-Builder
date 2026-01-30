@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mobile_app/core/services/isar_service.dart';
 import 'package:mobile_app/features/resume/models/resume_model.dart';
 import 'package:mobile_app/core/services/firestore_service.dart';
@@ -20,6 +21,14 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
   ResumesNotifier(this._isarService, this._firestoreService)
       : super(const AsyncValue.loading()) {
     loadResumes();
+  }
+
+  Future<ResumeIteration?> getResume(String resumeId) async {
+    final isar = await _isarService.isar;
+    return await isar.resumeIterations
+        .filter()
+        .resumeIdEqualTo(resumeId)
+        .findFirst();
   }
 
   Future<void> loadResumes() async {
@@ -71,6 +80,56 @@ class ResumesNotifier extends StateNotifier<AsyncValue<List<ResumeIteration>>> {
       await loadResumes();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> saveDraftCustom(
+      String draftId, String history, String specs) async {
+    try {
+      final isar = await _isarService.isar;
+      final existing = await isar.resumeIterations
+          .filter()
+          .resumeIdEqualTo(draftId)
+          .findFirst();
+
+      final draft = existing ?? ResumeIteration()
+        ..resumeId = draftId
+        ..createdAt = DateTime.now()
+        ..theme = 'Executive';
+
+      draft.data = (draft.data)
+        ..rawHistory = history
+        ..rawSpecs = specs;
+
+      await isar.writeTxn(() async {
+        await isar.resumeIterations.put(draft);
+      });
+    } catch (e) {
+      debugPrint('Autosave failed: $e');
+    }
+  }
+
+  Future<void> saveDraft(String history, String specs) =>
+      saveDraftCustom('TEMP_DRAFT', history, specs);
+
+  Future<ResumeIteration?> loadDraft() async {
+    final isar = await _isarService.isar;
+    return await isar.resumeIterations
+        .filter()
+        .resumeIdEqualTo('TEMP_DRAFT')
+        .findFirst();
+  }
+
+  Future<void> clearDraft() async {
+    final isar = await _isarService.isar;
+    final draft = await isar.resumeIterations
+        .filter()
+        .resumeIdEqualTo('TEMP_DRAFT')
+        .findFirst();
+    if (draft != null) {
+      await isar.writeTxn(() async {
+        await isar.resumeIterations.delete(draft.id);
+      });
     }
   }
 }

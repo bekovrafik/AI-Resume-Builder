@@ -34,7 +34,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.airesumebuilder.app"
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdk 36
     ndkVersion "27.0.12077973"
 
     compileOptions {
@@ -51,8 +51,8 @@ android {
         applicationId "com.airesumebuilder.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdk rootProject.ext.targetSdkVersion
+        minSdkVersion 24
+        targetSdk 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -65,6 +65,12 @@ android {
                 arguments "APP_SUPPORT_FLEXIBLE_PAGE_SIZES:=true",
                           "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
             }
+        }
+
+        ndk {
+            // Explicitly include armeabi-v7a (32-bit) to restore device support.
+            // 16KB page size devices (Android 15+) are 64-bit and will use arm64-v8a.
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
         }
     }
 

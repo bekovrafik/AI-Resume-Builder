@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-
 import 'package:mobile_app/core/utils/ad_helper.dart';
+import 'package:mobile_app/core/services/analytics_service.dart';
 
 class AdManagerService {
   static final AdManagerService instance = AdManagerService._internal();
@@ -20,6 +20,8 @@ class AdManagerService {
     if (_rewardedInterstitialAd != null || _isAdLoading) return;
 
     _isAdLoading = true;
+    debugPrint('AdManager: Requesting new ad...');
+
     RewardedInterstitialAd.load(
       adUnitId: _adUnitId,
       request: const AdRequest(),
@@ -28,10 +30,14 @@ class AdManagerService {
           debugPrint('AdManager: Ad loaded.');
           _rewardedInterstitialAd = ad;
           _isAdLoading = false;
+          AnalyticsService.logEvent(
+              name: 'ad_loaded', parameters: {'type': 'rewarded_interstitial'});
         },
         onAdFailedToLoad: (error) {
           debugPrint('AdManager: Ad failed to load: $error');
           _isAdLoading = false;
+          AnalyticsService.logAdFailed(
+              adUnitId: _adUnitId, error: error.message);
         },
       ),
     );
@@ -45,31 +51,48 @@ class AdManagerService {
   void _unlockExport() {
     _unlockExpirationTime = DateTime.now().add(const Duration(minutes: 30));
     debugPrint('AdManager: Export unlocked until $_unlockExpirationTime');
+    AnalyticsService.logExportUnlocked();
   }
 
-  void showRewardedAd({
+  Future<void> showRewardedAd({
     required VoidCallback onReward,
     required VoidCallback onDismiss,
     required VoidCallback onError,
-  }) {
+  }) async {
     if (isExportUnlocked()) {
       onReward();
       return;
     }
 
     if (_rewardedInterstitialAd == null) {
-      debugPrint(
-          'AdManager: Ad not ready. Attempting to reload and failing over.');
-      preloadAd();
-      // Fallback: If ad isn't ready, you might want to let them pass or show error.
-      // For better UX, we'll let them pass this time or show a specific error.
-      // Here we'll treat it as an error to trigger the "try again" or fallback UI.
-      onError();
-      return;
+      if (!_isAdLoading) {
+        preloadAd(); // Start loading if not already
+      }
+
+      // Smart Wait: Poll for up to 3 seconds
+      debugPrint('AdManager: Ad not ready. Waiting...');
+      int attempts = 0;
+      while (_rewardedInterstitialAd == null && attempts < 30) {
+        // 30 * 100ms = 3s
+        await Future.delayed(const Duration(milliseconds: 100));
+        attempts++;
+      }
+
+      if (_rewardedInterstitialAd == null) {
+        debugPrint(
+            'AdManager: Ad still not ready after waiting. Failing over.');
+        AnalyticsService.logEvent(name: 'ad_timeout');
+        onError();
+        return;
+      }
     }
 
     _rewardedInterstitialAd!.fullScreenContentCallback =
         FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        AnalyticsService.logAdImpression(
+            adUnitId: _adUnitId, adType: 'rewarded_interstitial');
+      },
       onAdDismissedFullScreenContent: (ad) {
         debugPrint('AdManager: Ad dismissed.');
         ad.dispose();
@@ -82,6 +105,8 @@ class AdManagerService {
         ad.dispose();
         _rewardedInterstitialAd = null;
         preloadAd();
+        AnalyticsService.logAdFailed(
+            adUnitId: _adUnitId, error: "Show Error: ${error.message}");
         onError();
       },
     );

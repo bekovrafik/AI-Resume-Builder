@@ -9,6 +9,8 @@ import 'package:mobile_app/features/builder/providers/resume_editor_provider.dar
 import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/builder/widgets/xyz_auditor_widget.dart';
 import 'package:mobile_app/features/builder/widgets/chat_architect_sheet.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
+import 'package:mobile_app/features/premium/widgets/token_hud.dart';
 
 class ResumeEditorScreen extends ConsumerStatefulWidget {
   final String? resumeId;
@@ -39,15 +41,13 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   }
 
   void _listenToState() {
-    ref.listen(resumeEditorProvider, (previous, next) {
+    ref.listen(resumeEditorProvider(widget.resumeId), (previous, next) {
       if (next.hasError) {
         CustomSnackBar.show(
           context,
           message: next.error.toString(),
           type: SnackBarType.error,
         );
-        // No need to clear messages in AsyncValue pattern usually, but if we want to reset:
-        // ref.read(resumeEditorProvider.notifier).clearMessages();
       }
       if (next.hasValue && next.value!.resultMessage != null) {
         CustomSnackBar.show(
@@ -55,7 +55,20 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           message: next.value!.resultMessage!,
           type: SnackBarType.success,
         );
-        ref.read(resumeEditorProvider.notifier).clearMessages();
+        ref
+            .read(resumeEditorProvider(widget.resumeId).notifier)
+            .clearMessages();
+      }
+
+      // Initialize controllers ONLY ONCE when data is first loaded
+      if (next.hasValue && (previous == null || !previous.hasValue)) {
+        final state = next.value!;
+        if (_historyController.text.isEmpty && state.historyText.isNotEmpty) {
+          _historyController.text = state.historyText;
+        }
+        if (_specsController.text.isEmpty && state.specsText.isNotEmpty) {
+          _specsController.text = state.specsText;
+        }
       }
     });
   }
@@ -68,22 +81,27 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   }
 
   Future<void> _onImportTap() async {
-    final importedText =
-        await ref.read(resumeEditorProvider.notifier).handleImport();
+    final importedText = await ref
+        .read(resumeEditorProvider(widget.resumeId).notifier)
+        .handleImport();
     if (importedText != null && mounted) {
       setState(() {
         _historyController.text = importedText;
       });
+      ref
+          .read(resumeEditorProvider(widget.resumeId).notifier)
+          .onHistoryChanged(importedText);
     }
   }
 
   Future<void> _onBuildTap() async {
-    final newId =
-        await ref.read(resumeEditorProvider.notifier).handleBuildResume(
-              historyText: _historyController.text,
-              specsText: _specsController.text,
-              theme: 'Executive', // Default theme
-            );
+    final newId = await ref
+        .read(resumeEditorProvider(widget.resumeId).notifier)
+        .handleBuildResume(
+          historyText: _historyController.text,
+          specsText: _specsController.text,
+          theme: 'Executive', // Default theme
+        );
 
     if (newId != null && mounted) {
       context.go('/preview/$newId');
@@ -93,7 +111,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
   @override
   Widget build(BuildContext context) {
     _listenToState();
-    final editorState = ref.watch(resumeEditorProvider);
+    final editorState = ref.watch(resumeEditorProvider(widget.resumeId));
     final isProcessing = editorState.isLoading;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -111,50 +129,66 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                      text: "Career ",
-                      style: AppTypography.header1
-                          .copyWith(color: textColor, fontSize: 32)),
-                  TextSpan(
-                      text: "Forge.",
-                      style: AppTypography.header1.copyWith(
-                          color: AppColors.strategicGold, fontSize: 32)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Container(
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white10 : Colors.black12,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    alignment: Alignment.centerLeft,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      width:
-                          MediaQuery.of(context).size.width * (_progress / 100),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [
-                          AppColors.goldDark,
-                          AppColors.strategicGold
-                        ]),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                            text: "Career ",
+                            style: AppTypography.header1
+                                .copyWith(color: textColor, fontSize: 32)),
+                        TextSpan(
+                            text: AppLocalizations.of(context)!.careerForge,
+                            style: AppTypography.header1.copyWith(
+                                color: AppColors.strategicGold, fontSize: 32)),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text("${_progress.toInt()}% SYNCED",
-                    style: AppTypography.labelSmall
-                        .copyWith(color: AppColors.strategicGold, fontSize: 9)),
+                const TokenHUD(),
               ],
+            ),
+            const SizedBox(height: 12),
+            // Optimization: Only rebuild progress bar when text changes
+            ListenableBuilder(
+              listenable:
+                  Listenable.merge([_historyController, _specsController]),
+              builder: (context, _) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white10 : Colors.black12,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 500),
+                          width: MediaQuery.of(context).size.width *
+                              (_progress / 100),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [
+                              AppColors.goldDark,
+                              AppColors.strategicGold
+                            ]),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                        "${_progress.toInt()}% ${AppLocalizations.of(context)!.synced}",
+                        style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.strategicGold, fontSize: 9)),
+                  ],
+                );
+              },
             )
           ],
         ),
@@ -174,8 +208,10 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           ),
           child: Row(
             children: [
-              _buildSegmentBtn("WORK HISTORY", 'history', isDark, textColor),
-              _buildSegmentBtn("TARGET SPECS", 'specs', isDark, textColor),
+              _buildSegmentBtn(AppLocalizations.of(context)!.workHistorySegment,
+                  'history', isDark, textColor),
+              _buildSegmentBtn(AppLocalizations.of(context)!.targetSpecsSegment,
+                  'specs', isDark, textColor),
             ],
           ),
         ),
@@ -186,7 +222,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     Widget buildContent() {
       if (_activeSegment == 'history') {
         return _buildHistoryInput(
-            isDark, textColor, subTextColor, isProcessing);
+            isDark, textColor, subTextColor, isProcessing, editorState);
       } else {
         return _buildSpecsInput(isDark, textColor, subTextColor);
       }
@@ -221,14 +257,15 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                         children: [
                           Expanded(
                               child: _buildInfoCard(
-                                  "IMPACT FIRST",
-                                  "Quantitative data leads to 3x higher interview rates.",
+                                  AppLocalizations.of(context)!
+                                      .impactFirstTitle,
+                                  AppLocalizations.of(context)!.impactFirstDesc,
                                   isDark)),
                           const SizedBox(width: 16),
                           Expanded(
                               child: _buildInfoCard(
-                                  "ATS READY",
-                                  "Synchronizing inputs with 500+ industry algorithms.",
+                                  AppLocalizations.of(context)!.atsReadyTitle,
+                                  AppLocalizations.of(context)!.atsReadyDesc,
                                   isDark)),
                         ],
                       ),
@@ -259,14 +296,16 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                                           color: AppColors.strategicGold,
                                           strokeWidth: 2)),
                                   const SizedBox(width: 12),
-                                  Text("SYNTHESIZING...",
+                                  Text(
+                                      AppLocalizations.of(context)!
+                                          .synthesizing,
                                       style: AppTypography.labelSmall.copyWith(
                                           color: Colors.white,
                                           letterSpacing: 3)),
                                 ],
                               )
                             : Text(
-                                "BUILD RESUME",
+                                AppLocalizations.of(context)!.buildResume,
                                 style: AppTypography.labelSmall.copyWith(
                                     color: Colors.white, letterSpacing: 3),
                               ),
@@ -313,8 +352,8 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
     );
   }
 
-  Widget _buildHistoryInput(
-      bool isDark, Color textColor, Color subTextColor, bool isProcessing) {
+  Widget _buildHistoryInput(bool isDark, Color textColor, Color subTextColor,
+      bool isProcessing, AsyncValue<ResumeEditorState> editorState) {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(30),
@@ -337,10 +376,10 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("CAREER LEGACY DATA",
+                      Text(AppLocalizations.of(context)!.careerLegacyData,
                           style: AppTypography.labelSmall
                               .copyWith(color: textColor, fontSize: 9)),
-                      Text("Input raw history or upload.",
+                      Text(AppLocalizations.of(context)!.inputRawHistory,
                           style: AppTypography.labelSmall
                               .copyWith(color: subTextColor, fontSize: 8)),
                     ],
@@ -364,9 +403,18 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                           height: 12,
                           child: CircularProgressIndicator(
                               strokeWidth: 1, color: textColor))
-                      : Text("IMPORT FILE",
-                          style: AppTypography.labelSmall
-                              .copyWith(color: subTextColor, fontSize: 8)),
+                      : Text(
+                          editorState.value?.status != null
+                              ? editorState.value!.status!
+                              : AppLocalizations.of(context)!.importFile,
+                          style: AppTypography.labelSmall.copyWith(
+                              color: editorState.value?.status != null
+                                  ? AppColors.strategicGold
+                                  : subTextColor,
+                              fontSize: 8,
+                              fontWeight: editorState.value?.status != null
+                                  ? FontWeight.bold
+                                  : FontWeight.normal)),
                 ),
               )
             ],
@@ -378,36 +426,51 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             maxLines: 10,
             style: TextStyle(color: textColor, height: 1.5),
             decoration: InputDecoration(
-              hintText:
-                  "Ex: Led engineering team at Tech Corp. Launched mobile app reaching 1M users...",
+              hintText: AppLocalizations.of(context)!.historyHint,
               hintStyle: TextStyle(color: subTextColor.withValues(alpha: 0.4)),
               border: InputBorder.none,
             ),
-            onChanged: (v) => setState(() {}),
+            onChanged: (v) {
+              // Removed setState to prevent full page rebuilds
+              ref
+                  .read(resumeEditorProvider(widget.resumeId).notifier)
+                  .onHistoryChanged(v);
+            },
           ),
           // STAR-K Refinement Button
-          if (_historyController.text.length > 50) ...[
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => _openChatArchitect(),
-                icon: const Icon(Icons.psychology,
-                    color: AppColors.strategicGold, size: 16),
-                label: Text("REFINE WITH AI (STAR-K)",
-                    style: AppTypography.labelSmall
-                        .copyWith(color: AppColors.strategicGold)),
-                style: TextButton.styleFrom(
-                  backgroundColor:
-                      AppColors.strategicGold.withValues(alpha: 0.1),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                ),
-              ),
-            ),
-          ],
+          // Optimization: Only rebuild this button when text length passes threshold
+          ListenableBuilder(
+            listenable: _historyController,
+            builder: (context, _) {
+              if (_historyController.text.length <= 50) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () => _openChatArchitect(),
+                      icon: const Icon(Icons.psychology,
+                          color: AppColors.strategicGold, size: 16),
+                      label: Text(AppLocalizations.of(context)!.refineWithAi,
+                          style: AppTypography.labelSmall
+                              .copyWith(color: AppColors.strategicGold)),
+                      style: TextButton.styleFrom(
+                        backgroundColor:
+                            AppColors.strategicGold.withValues(alpha: 0.1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
           const SizedBox(height: 20),
           Divider(color: textColor.withValues(alpha: 0.1)),
           const SizedBox(height: 10),
@@ -418,7 +481,10 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                 onPressed: () => setState(() => _showAudit = !_showAudit),
                 icon: Icon(_showAudit ? Icons.close : Icons.auto_awesome,
                     color: AppColors.strategicGold, size: 16),
-                label: Text(_showAudit ? "CLOSE AUDITOR" : "AUDIT IMPACT (XYZ)",
+                label: Text(
+                    _showAudit
+                        ? AppLocalizations.of(context)!.closeAuditor
+                        : AppLocalizations.of(context)!.auditImpact,
                     style: AppTypography.labelSmall
                         .copyWith(color: AppColors.strategicGold)),
               ),
@@ -426,7 +492,7 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
                 onTap: () => setState(() => _activeSegment = 'specs'),
                 child: Row(
                   children: [
-                    Text("NEXT STAGE",
+                    Text(AppLocalizations.of(context)!.nextStage,
                         style: AppTypography.labelSmall
                             .copyWith(color: AppColors.strategicGold)),
                     const Icon(Icons.chevron_right,
@@ -452,6 +518,9 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
           setState(() {
             _historyController.text = newText;
           });
+          ref
+              .read(resumeEditorProvider(widget.resumeId).notifier)
+              .onHistoryChanged(newText);
         },
       ),
     );
@@ -477,10 +546,10 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("OPPORTUNITY SPECS",
+                  Text(AppLocalizations.of(context)!.opportunitySpecs,
                       style: AppTypography.labelSmall
                           .copyWith(color: textColor, fontSize: 9)),
-                  Text("Keyword synchronization.",
+                  Text(AppLocalizations.of(context)!.keywordSynchronization,
                       style: AppTypography.labelSmall
                           .copyWith(color: subTextColor, fontSize: 8)),
                 ],
@@ -493,12 +562,16 @@ class _ResumeEditorScreenState extends ConsumerState<ResumeEditorScreen> {
             maxLines: 10,
             style: TextStyle(color: textColor, height: 1.5),
             decoration: InputDecoration(
-              hintText:
-                  "Paste the Job Description or key requirements here to enable precise ATS alignment...",
+              hintText: AppLocalizations.of(context)!.specsHint,
               hintStyle: TextStyle(color: subTextColor.withValues(alpha: 0.4)),
               border: InputBorder.none,
             ),
-            onChanged: (v) => setState(() {}),
+            onChanged: (v) {
+              // Removed setState to prevent full page rebuilds
+              ref
+                  .read(resumeEditorProvider(widget.resumeId).notifier)
+                  .onSpecsChanged(v);
+            },
           ),
         ],
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:mobile_app/core/services/isar_service.dart';
 import 'package:mobile_app/features/resume/models/resume_model.dart';
 

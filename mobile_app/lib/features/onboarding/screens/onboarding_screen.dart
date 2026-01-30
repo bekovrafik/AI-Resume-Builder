@@ -5,6 +5,7 @@ import 'package:mobile_app/core/ui/glass_container.dart';
 import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -17,36 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
   bool _isInteracted = false;
 
-  final List<Map<String, dynamic>> _steps = [
-    {
-      "title": "THE AI STANDARD",
-      "description":
-          "Welcome to AI Resume Builder. We build professional career profiles using advanced AI models.",
-      "icon": Icons.verified_user_outlined,
-      "color": AppColors.strategicGold,
-    },
-    {
-      "title": "THE XYZ FORMULA",
-      "content":
-          "Google-recommended logic: 'Accomplished [X] as measured by [Y], by doing [Z]'. Watch the transformation below.",
-      "icon": Icons.trending_up,
-      "color": AppColors.strategicGold,
-    },
-    {
-      "title": "ATS OPTIMIZATION",
-      "content":
-          "Our engine automatically injects high-traffic industry keywords to ensure your narrative clears every digital gatekeeper.",
-      "icon": Icons.manage_search,
-      "color": AppColors.strategicGold,
-    },
-    {
-      "title": "NARRATIVE POLISH",
-      "description":
-          "Your dashboard is interactive. Click any achievement to refine it, or chat with the AI Assistant for real-time improvements.",
-      "icon": Icons.diamond_outlined,
-      "color": AppColors.strategicGold,
-    }
-  ];
+  // Steps moved to build method for context access
 
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
@@ -55,9 +27,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     GoRouter.of(context).go('/login');
   }
 
-  void _nextPage() {
+  void _nextPage(int stepsCount) {
     setState(() {
-      if (_currentPage < _steps.length - 1) {
+      if (_currentPage < stepsCount - 1) {
         _currentPage++;
         _isInteracted = false; // Reset interaction state
       } else {
@@ -68,10 +40,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final List<Map<String, dynamic>> steps = [
+      {
+        "title": l10n.step1Title,
+        "description": l10n.step1Desc,
+        "icon": Icons.verified_user_outlined,
+        "color": AppColors.strategicGold,
+      },
+      {
+        "title": l10n.step2Title,
+        "content": l10n.step2Desc,
+        "icon": Icons.trending_up,
+        "color": AppColors.strategicGold,
+      },
+      {
+        "title": l10n.step3Title,
+        "content": l10n.step3Desc,
+        "icon": Icons.manage_search,
+        "color": AppColors.strategicGold,
+      },
+      {
+        "title": l10n.step4Title,
+        "description": l10n.step4Desc,
+        "icon": Icons.diamond_outlined,
+        "color": AppColors.strategicGold,
+      }
+    ];
+
     // Determine the content/description key based on the step
     final String contentKey =
         (_currentPage == 0 || _currentPage == 3) ? "description" : "content";
-    final step = _steps[_currentPage];
+    final step = steps[_currentPage];
 
     // Build Interaction Widget based on step
     Widget buildInteraction() {
@@ -93,11 +93,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("STANDARD BULLET",
+                    Text(AppLocalizations.of(context)!.standardBulletLabel,
                         style: AppTypography.labelSmall
                             .copyWith(color: Colors.grey)),
                     const SizedBox(height: 4),
-                    Text('"I helped my team with sales targets."',
+                    Text(AppLocalizations.of(context)!.standardBulletExample,
                         style: AppTypography.bodySmall
                             .copyWith(color: Colors.white70)),
                   ],
@@ -124,12 +124,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("AI RESUME",
+                    Text(AppLocalizations.of(context)!.aiResumeLabel,
                         style: AppTypography.labelSmall
                             .copyWith(color: Colors.white54)),
                     const SizedBox(height: 4),
-                    Text(
-                        '"Spearheaded a new sales methodology that boosted quarterly revenue by 22% (\$450k)."',
+                    Text(AppLocalizations.of(context)!.aiResumeExample,
                         style: AppTypography.bodySmall.copyWith(
                             color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
@@ -142,7 +141,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: TextButton(
                   onPressed: () => setState(() => _isInteracted = true),
                   child: Text(
-                    "CLICK TO APPLY LOGIC",
+                    AppLocalizations.of(context)!.clickToApplyLogic,
                     style: AppTypography.labelSmall
                         .copyWith(color: AppColors.strategicGold),
                   ),
@@ -200,7 +199,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () => setState(() => _isInteracted = true),
-                    child: Text("SIMULATE ATS SCAN",
+                    child: Text(AppLocalizations.of(context)!.simulateAtsScan,
                         style: AppTypography.labelSmall
                             .copyWith(color: Colors.white)),
                   ),
@@ -241,32 +240,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Icon
-                  Icon(step['icon'], size: 48, color: Colors.white),
-                  const SizedBox(height: 24),
-
-                  // Title
-                  Text(
-                    step['title'].toString(),
-                    style: AppTypography.header2.copyWith(
-                      color: Colors.white,
-                      letterSpacing: 2.0,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
                   // Content
-                  Text(
-                    step[contentKey].toString(),
-                    style: AppTypography.bodyMedium
-                        .copyWith(color: Colors.white70),
-                    textAlign: TextAlign.center,
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(step['icon'], size: 48, color: Colors.white),
+                          const SizedBox(height: 24),
+                          Text(
+                            step['title'].toString(),
+                            style: AppTypography.header2.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 2.0,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            step[contentKey].toString(),
+                            style: AppTypography.bodyMedium
+                                .copyWith(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          // Custom Interaction
+                          buildInteraction(),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Custom Interaction
-                  buildInteraction(),
 
                   const SizedBox(height: 32),
 
@@ -274,7 +277,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _steps.length,
+                      steps.length,
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -296,7 +299,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _nextPage,
+                      onPressed: () => _nextPage(steps.length),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
@@ -308,9 +311,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         shadowColor: Colors.black26,
                       ),
                       child: Text(
-                        _currentPage == _steps.length - 1
-                            ? "START BUILDING"
-                            : "NEXT",
+                        _currentPage == steps.length - 1
+                            ? l10n.startBuilding
+                            : l10n.next,
                         style: AppTypography.labelLarge
                             .copyWith(color: Colors.black),
                       ),
@@ -323,7 +326,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   TextButton(
                     onPressed: _completeOnboarding,
                     child: Text(
-                      "SKIP ONBOARDING",
+                      l10n.skipOnboarding,
                       style:
                           AppTypography.labelSmall.copyWith(color: Colors.grey),
                     ),

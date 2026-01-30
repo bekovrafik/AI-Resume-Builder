@@ -7,6 +7,7 @@ import 'package:mobile_app/core/ui/gradient_background.dart';
 import 'package:mobile_app/core/ui/app_typography.dart';
 import 'package:mobile_app/features/resume/providers/resume_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class VaultScreen extends ConsumerWidget {
   const VaultScreen({super.key});
@@ -32,7 +33,7 @@ class VaultScreen extends ConsumerWidget {
                           style: AppTypography.header1
                               .copyWith(color: Colors.white, fontSize: 32)),
                       TextSpan(
-                          text: "Vault.",
+                          text: AppLocalizations.of(context)!.careerVaultDot,
                           style: AppTypography.header1.copyWith(
                               color: AppColors.strategicGold, fontSize: 32)),
                     ],
@@ -58,7 +59,7 @@ class VaultScreen extends ConsumerWidget {
                                   size: 48, color: Colors.white24),
                             ),
                             const SizedBox(height: 24),
-                            Text("ARCHIVE EMPTY",
+                            Text(AppLocalizations.of(context)!.archiveEmpty,
                                 style: AppTypography.labelSmall.copyWith(
                                     color: Colors.white24, letterSpacing: 2)),
                             const SizedBox(height: 32),
@@ -72,7 +73,9 @@ class VaultScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 32, vertical: 16),
                               ),
-                              child: Text("CREATE RESUME",
+                              child: Text(
+                                  AppLocalizations.of(context)!
+                                      .createResumeButton,
                                   style: AppTypography.labelSmall.copyWith(
                                       color: AppColors.midnightNavy,
                                       fontWeight: FontWeight.bold)),
@@ -115,7 +118,8 @@ class VaultScreen extends ConsumerWidget {
                                       children: [
                                         Text(
                                             resume.data.targetRole ??
-                                                'Untitled Resume',
+                                                AppLocalizations.of(context)!
+                                                    .untitledResume,
                                             style: AppTypography.header3
                                                 .copyWith(
                                                     color: Colors.white,
@@ -149,7 +153,9 @@ class VaultScreen extends ConsumerWidget {
                       child: CircularProgressIndicator(
                           color: AppColors.strategicGold)),
                   error: (err, stack) => Center(
-                      child: Text('Error: $err',
+                      child: Text(
+                          AppLocalizations.of(context)!
+                              .errorPrefix(err.toString()),
                           style: const TextStyle(color: AppColors.errorRed))),
                 ),
               ),

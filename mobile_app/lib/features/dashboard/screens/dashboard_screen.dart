@@ -9,6 +9,7 @@ import 'package:mobile_app/features/profile/providers/profile_provider.dart';
 
 import 'package:mobile_app/core/ui/custom_snackbar.dart';
 import 'package:mobile_app/features/auth/services/auth_service.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -24,10 +25,10 @@ class DashboardScreen extends ConsumerWidget {
           data: (profileData) {
             final fullName = profileData.fullName?.isNotEmpty == true
                 ? profileData.fullName!
-                : 'Career AI';
+                : AppLocalizations.of(context)!.careerAiDefaultName;
             final targetRole = profileData.targetRole?.isNotEmpty == true
                 ? profileData.targetRole!
-                : 'Identity Not Synced';
+                : AppLocalizations.of(context)!.identityNotSynced;
 
             final progress =
                 (profileData.fullName?.isNotEmpty == true ? 20 : 0) +
@@ -79,10 +80,14 @@ class DashboardScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(fullName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: AppTypography.header3
                                       .copyWith(color: textColor)),
                               const SizedBox(height: 4),
                               Text(targetRole,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: AppTypography.labelSmall.copyWith(
                                       color:
                                           isDark ? Colors.white54 : Colors.grey,
@@ -110,7 +115,9 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Settings Section: Identity
-                  _buildSectionHeader("PERSONALIZATION", isDark),
+                  _buildSectionHeader(
+                      AppLocalizations.of(context)!.personalizationSection,
+                      isDark),
                   const SizedBox(height: 16),
                   GlassContainer(
                     padding: EdgeInsets.zero,
@@ -119,8 +126,10 @@ class DashboardScreen extends ConsumerWidget {
                       children: [
                         _buildSettingRow(
                           context,
-                          title: "Identity Standard",
-                          subtitle: "Profile, Role, Contact",
+                          title: AppLocalizations.of(context)!
+                              .identityStandardTitle,
+                          subtitle: AppLocalizations.of(context)!
+                              .identityStandardSubtitle,
                           icon: Icons.person_outline,
                           onTap: () => context.push('/profile'),
                           isFirst: true,
@@ -132,8 +141,9 @@ class DashboardScreen extends ConsumerWidget {
                             color: isDark ? Colors.white12 : Colors.black12),
                         _buildSettingRow(
                           context,
-                          title: "Career Vault",
-                          subtitle: "Narratives Indexed",
+                          title: AppLocalizations.of(context)!.careerVaultTitle,
+                          subtitle:
+                              AppLocalizations.of(context)!.careerVaultSubtitle,
                           icon: Icons.inventory_2_outlined,
                           onTap: () => context.push('/vault'),
                           isLast: true,
@@ -146,7 +156,8 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Settings Section: Architecture
-                  _buildSectionHeader("AI CONTROLS", isDark),
+                  _buildSectionHeader(
+                      AppLocalizations.of(context)!.aiControlsSection, isDark),
                   const SizedBox(height: 16),
                   GlassContainer(
                     padding: EdgeInsets.zero,
@@ -155,8 +166,9 @@ class DashboardScreen extends ConsumerWidget {
                       children: [
                         _buildSettingRow(
                           context,
-                          title: "Market Radar",
-                          subtitle: "Initialize Job Search",
+                          title: AppLocalizations.of(context)!.marketRadarTitle,
+                          subtitle:
+                              AppLocalizations.of(context)!.marketRadarSubtitle,
                           icon: Icons.radar,
                           iconColor: AppColors.strategicGold,
                           onTap: () => context.push('/market'),
@@ -168,8 +180,10 @@ class DashboardScreen extends ConsumerWidget {
                             color: isDark ? Colors.white12 : Colors.black12),
                         _buildSettingRow(
                           context,
-                          title: "Interview Prep Protocol",
-                          subtitle: "Initialize Tactical Analysis",
+                          title:
+                              AppLocalizations.of(context)!.interviewPrepTitle,
+                          subtitle: AppLocalizations.of(context)!
+                              .interviewPrepSubtitle,
                           icon: Icons.psychology_outlined,
                           iconColor: AppColors.strategicGold,
                           onTap: () => context.push('/strategy'),
@@ -180,8 +194,10 @@ class DashboardScreen extends ConsumerWidget {
                             color: isDark ? Colors.white12 : Colors.black12),
                         _buildSettingRow(
                           context,
-                          title: "Chat Assistant",
-                          subtitle: "Chat with AI Assistant",
+                          title:
+                              AppLocalizations.of(context)!.chatAssistantTitle,
+                          subtitle: AppLocalizations.of(context)!
+                              .chatAssistantSubtitle,
                           icon: Icons.record_voice_over,
                           iconColor: AppColors.strategicGold,
                           onTap: () => context.push('/chat'),
@@ -195,7 +211,8 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Settings Section: Preferences
-                  _buildSectionHeader("PREFERENCES", isDark),
+                  _buildSectionHeader(
+                      AppLocalizations.of(context)!.preferencesSection, isDark),
                   const SizedBox(height: 16),
                   GlassContainer(
                       padding: EdgeInsets.zero,
@@ -203,13 +220,15 @@ class DashboardScreen extends ConsumerWidget {
                       child: Column(children: [
                         _buildSettingRow(
                           context,
-                          title: "Concierge & Support",
-                          subtitle: "Inquiry Dispatch",
+                          title: AppLocalizations.of(context)!.conciergeTitle,
+                          subtitle:
+                              AppLocalizations.of(context)!.conciergeSubtitle,
                           icon: Icons.support_agent,
                           onTap: () {
                             CustomSnackBar.show(
                               context,
-                              message: "Concierge Support Coming Soon",
+                              message: AppLocalizations.of(context)!
+                                  .conciergeComingSoon,
                               type: SnackBarType.info,
                             );
                           },
@@ -222,14 +241,14 @@ class DashboardScreen extends ConsumerWidget {
                             color: isDark ? Colors.white12 : Colors.black12),
                         _buildSettingRow(
                           context,
-                          title: "Legal Standard",
-                          subtitle: "Institutional Privacy Policy",
+                          title: AppLocalizations.of(context)!.legalTitle,
+                          subtitle: AppLocalizations.of(context)!.legalSubtitle,
                           icon: Icons.policy_outlined,
                           onTap: () {
                             CustomSnackBar.show(
                               context,
-                              message:
-                                  "Privacy Policy: Standard GDPR Compliance",
+                              message: AppLocalizations.of(context)!
+                                  .privacyPolicyMessage,
                               type: SnackBarType.info,
                             );
                           },
@@ -241,8 +260,10 @@ class DashboardScreen extends ConsumerWidget {
                             color: isDark ? Colors.white12 : Colors.black12),
                         _buildSettingRow(
                           context,
-                          title: "Terminate Session",
-                          subtitle: "Logout securely",
+                          title: AppLocalizations.of(context)!
+                              .terminateSessionTitle,
+                          subtitle: AppLocalizations.of(context)!
+                              .terminateSessionSubtitle,
                           icon: Icons.logout,
                           iconColor: Colors.red,
                           titleColor: Colors.red,
@@ -259,11 +280,13 @@ class DashboardScreen extends ConsumerWidget {
                   Center(
                     child: Column(
                       children: [
-                        Text("AI RESUME BUILDER PROFESSIONAL SUITE V2.0",
+                        Text(AppLocalizations.of(context)!.suiteVersion,
                             style: AppTypography.labelSmall
                                 .copyWith(color: Colors.grey, fontSize: 8)),
                         const SizedBox(height: 4),
-                        Text("Comprehensive Career Building",
+                        Text(
+                            AppLocalizations.of(context)!
+                                .comprehensiveCareerBuilding,
                             style: AppTypography.labelSmall.copyWith(
                                 color: Colors.grey[400], fontSize: 7)),
                       ],
@@ -279,7 +302,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
           error: (err, stack) => Center(
             child: Text(
-              "Sync Error: $err",
+              AppLocalizations.of(context)!.syncError(err.toString()),
               style: const TextStyle(color: Colors.red),
             ),
           ),
@@ -345,6 +368,8 @@ class DashboardScreen extends ConsumerWidget {
                           fontWeight: FontWeight.w600,
                           color: effectiveTitleColor)),
                   Text(subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTypography.labelSmall.copyWith(
                           color: Colors.grey, fontSize: 9, letterSpacing: 1.0)),
                 ],
